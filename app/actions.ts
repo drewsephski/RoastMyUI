@@ -48,8 +48,9 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
         const page = await browser.newPage();
         await page.setViewport({ width: 1280, height: 800 });
         await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 15000 });
+        await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 30000 });
         const base64 = await page.screenshot({ encoding: "base64", type: "jpeg", quality: 80 });
+        console.log(`Screenshot base64 size: ${base64 ? base64.length : 0} bytes`);
         await browser.close();
         return base64 as string;
     } catch (error) {
