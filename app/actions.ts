@@ -61,8 +61,9 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
 // Define a list of models to try in order of preference
 const MODEL_FALLBACK_CHAIN = [
     "gemini-2.5-flash",  // Latest and greatest
-    "gemini-2.0-flash-latest",  // Latest stable
+    "gemini-2.5-flash-lite",        // Lighter version
     "gemini-2.0-flash-001",  // Specific version
+    "gemini-2.0-flash-latest",  // Latest stable
     "gemini-2.0-flash-lite-preview",  // Lite version
     "gemini-2.0-flash-lite-001",  // Current fallback
     "gemma-3-4b-it",  // Gemma model as last resort
