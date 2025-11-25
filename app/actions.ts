@@ -14,6 +14,7 @@ export interface RoastData {
     weaknesses: string[];
     sources: { title: string; uri: string }[];
     screenshot?: string;
+    modelUsed?: string;
 }
 
 const captureScreenshot = async (url: string): Promise<string | null> => {
@@ -55,6 +56,16 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
     }
 };
 
+// Define a list of models to try in order of preference
+const MODEL_FALLBACK_CHAIN = [
+    "gemini-2.5-flash",  // Latest and greatest
+    "gemini-2.0-flash-latest",  // Latest stable
+    "gemini-2.0-flash-001",  // Specific version
+    "gemini-2.0-flash-lite-preview",  // Lite version
+    "gemini-2.0-flash-lite-001",  // Current fallback
+    "gemma-3-4b-it",  // Gemma model as last resort
+];
+
 export const generateRoast = async (url: string): Promise<RoastData> => {
     const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -62,8 +73,6 @@ export const generateRoast = async (url: string): Promise<RoastData> => {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-
-    // 1. Try to get the visual data
     const base64Image = await captureScreenshot(url);
 
     const systemInstruction = `
@@ -144,8 +153,8 @@ Your job: given the input, produce a JSON roast that feels human, petty, and ent
     Roast this website: ${url}
 
 ${base64Image
-            ? "I have attached a screenshot of the homepage as a base64 image. LOOK. AT. IT. Call out specific visual crimes: spacing, alignment, colors, typography, layout, hero section, nav size, buttons, and any random nonsense you see."
-            : "I could not take a screenshot, so rely on your search results, page context, and general design intuition. Imagine how a typical site in this space might look and roast that energy."}
+        ? "I have attached a screenshot of the homepage as a base64 image. LOOK. AT. IT. Call out specific visual crimes: spacing, alignment, colors, typography, layout, hero section, nav size, buttons, and any random nonsense you see."
+        : "I could not take a screenshot, so rely on your search results, page context, and general design intuition. Imagine how a typical site in this space might look and roast that energy."}
 
 Context:
 - Use Google Search or web context to understand what this website does and who it targets.
@@ -211,51 +220,69 @@ Important:
         });
     }
 
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash-lite-001", // Explicit version to avoid 404s
-            contents: [{ parts: parts }],
-            config: {
-                tools: [{ googleSearch: {} }],
-                systemInstruction: systemInstruction,
-                temperature: 1.0,
-            },
-        });
+    let lastError: Error | null = null;
 
-        // Parse the text response
-        let text = response.text || "{}";
-        if (text.startsWith("```")) {
-            text = text.replace(/^```json\n?/, "").replace(/```$/, "");
-        }
-
-        let parsed;
+    // Try each model in the fallback chain
+    for (const model of MODEL_FALLBACK_CHAIN) {
         try {
-            parsed = JSON.parse(text);
-        } catch {
-            console.error("Failed to parse JSON from roast:", text);
-            throw new Error("The AI was too chaotic and returned invalid JSON. Try again.");
+            console.log(`Trying model: ${model}`);
+            const response = await ai.models.generateContent({
+                model: model,
+                contents: [{ parts: parts }],
+                config: {
+                    tools: [{ googleSearch: {} }],
+                    systemInstruction: systemInstruction,
+                    temperature: 1.0,
+                },
+            });
+
+            // Parse the response
+            let text = response.text || "{}";
+            if (text.startsWith("```")) {
+                text = text.replace(/^```json\n?/, "").replace(/```$/, "");
+            }
+
+            let parsed;
+            try {
+                parsed = JSON.parse(text);
+            } catch (parseError) {
+                console.error(`Failed to parse JSON from ${model}:`, text);
+                throw new Error("The AI returned invalid JSON. Trying next model...");
+            }
+
+            // Extract Grounding Metadata
+            const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
+                ?.map((chunk: any) => {
+                    if (chunk.web) {
+                        return { title: chunk.web.title, uri: chunk.web.uri };
+                    }
+                    return null;
+                })
+                .filter((source: any) => source !== null) || [];
+
+            console.log(`Successfully used model: ${model}`);
+            return {
+                url,
+                ...parsed,
+                sources,
+                screenshot: base64Image ? `data:image/jpeg;base64,${base64Image}` : undefined,
+                modelUsed: model,  // Track which model was successful
+            };
+        } catch (error) {
+            console.error(`Error with model ${model}:`, error);
+            lastError = error as Error;
+            
+            // If we get a rate limit error (429), add a small delay before trying the next model
+            if ((error as any).status === 429) {
+                console.log(`Rate limited on ${model}, waiting before next attempt...`);
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+            }
+            
+            // Continue to the next model
+            continue;
         }
-
-        // Extract Grounding Metadata
-        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ?.map((chunk: any) => {
-                if (chunk.web) {
-                    return { title: chunk.web.title, uri: chunk.web.uri };
-                }
-                return null;
-            })
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .filter((source: any) => source !== null) || [];
-
-        return {
-            url,
-            ...parsed,
-            sources,
-            screenshot: base64Image ? `data:image/jpeg;base64,${base64Image}` : undefined,
-        };
-    } catch (error) {
-        console.error("Gemini Roast Error:", error);
-        throw error;
     }
+
+    // If we get here, all models failed
+    throw new Error(`All model attempts failed. Last error: ${lastError?.message || 'Unknown error'}`);
 };
