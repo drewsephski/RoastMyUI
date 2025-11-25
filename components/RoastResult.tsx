@@ -1,6 +1,17 @@
 import React from 'react';
-import { RoastData } from '@/app/actions';
 import { Share2, RefreshCcw, Copy, Check, Eye } from 'lucide-react';
+
+interface RoastData {
+    url: string;
+    score: number;
+    tagline: string;
+    roast: string;
+    shareText: string;
+    strengths: string[];
+    weaknesses: string[];
+    sources: { title: string; uri: string }[];
+    screenshot?: string;
+}
 
 interface RoastResultProps {
     data: RoastData;

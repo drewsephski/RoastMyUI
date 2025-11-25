@@ -5,8 +5,19 @@ import Image from 'next/image';
 import { RoastForm } from '@/components/RoastForm';
 import { RoastResult } from '@/components/RoastResult';
 import { LoadingState } from '@/components/LoadingState';
-import { generateRoast, RoastData } from '@/app/actions';
 import { Flame, MessageCircle, Repeat, Heart, BarChart2 } from 'lucide-react';
+
+interface RoastData {
+  url: string;
+  score: number;
+  tagline: string;
+  roast: string;
+  shareText: string;
+  strengths: string[];
+  weaknesses: string[];
+  sources: { title: string; uri: string }[];
+  screenshot?: string;
+}
 
 const App: React.FC = () => {
   const [roastData, setRoastData] = useState<RoastData | null>(null);
@@ -19,11 +30,24 @@ const App: React.FC = () => {
     setRoastData(null);
 
     try {
-      const data = await generateRoast(url);
+      const response = await fetch('/api/roast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate roast');
+      }
+
+      const data = await response.json();
       setRoastData(data);
     } catch (err) {
       console.error(err);
-      setError("Gemini refused to roast this (it was too powerful or the API broke). Try again.");
+      setError(err instanceof Error ? err.message : "Gemini refused to roast this (it was too powerful or the API broke). Try again.");
     } finally {
       setIsLoading(false);
     }
