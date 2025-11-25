@@ -34,6 +34,10 @@ const App: React.FC = () => {
     setError(null);
   };
 
+  const scrollToHero = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-neutral-950 text-white selection:bg-rose-500 selection:text-white">
       {/* Abstract Background Elements */}
@@ -47,13 +51,13 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-8 z-10 max-w-5xl mx-auto w-full">
+      <main id="hero-section" className="flex-grow flex flex-col items-center justify-center p-4 sm:p-8 z-10 max-w-5xl mx-auto w-full mt-24">
         {isLoading ? (
           <LoadingState />
         ) : roastData ? (
           <RoastResult data={roastData} onReset={handleReset} />
         ) : (
-          <div className="w-full max-w-4xl flex flex-col items-center text-center space-y-8 md:space-y-12 animate-in fade-in zoom-in duration-500 pt-8 md:pt-0">
+          <div className="w-full max-w-6xl flex flex-col items-center text-center space-y-8 md:space-y-12 animate-in fade-in zoom-in duration-500 pt-8 md:pt-0">
             <div className="space-y-4 md:space-y-6">
               <div className="inline-block border border-rose-500/30 bg-rose-500/10 px-3 py-1 rounded-full">
                 <span className="text-rose-400 text-[10px] md:text-xs font-mono uppercase tracking-widest">
@@ -198,7 +202,10 @@ const App: React.FC = () => {
               {/* Optional CTA */}
               <div className="pt-4">
                 <button
-                  onClick={handleReset}
+                  onClick={() => {
+                    handleReset();
+                    scrollToHero();
+                  }}
                   className="group relative px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(244,63,94,0.5)]"
                 >
                   <span className="relative z-10">Try It Now</span>
