@@ -19,12 +19,20 @@ export interface RoastData {
 
 const captureScreenshot = async (url: string): Promise<string | null> => {
     try {
-        let browser;
+        // Normalize and validate URL
+        const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
+        try {
+            new URL(normalizedUrl);
+        } catch {
+            console.error("Invalid URL format:", url);
+            return null;
+        }
 
-        if (process.env.NODE_ENV === "production") {
+        let browser;
+        if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
             // Production: Use @sparticuz/chromium
             browser = await puppeteerCore.launch({
-                args: chromium.args,
+                args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
                 executablePath: await chromium.executablePath(),
                 headless: true,
             });
@@ -39,15 +47,9 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
 
         const page = await browser.newPage();
         await page.setViewport({ width: 1280, height: 800 });
-
-        // Set a user agent to avoid being blocked
         await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-
-        await page.goto(url, { waitUntil: "networkidle0", timeout: 15000 });
-
-        // Take a screenshot
+        await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 15000 });
         const base64 = await page.screenshot({ encoding: "base64", type: "jpeg", quality: 80 });
-
         await browser.close();
         return base64 as string;
     } catch (error) {
@@ -208,8 +210,7 @@ Important:
   `;
 
     // Build the content parts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const parts: any[] = [{ text: promptText }];
+    const parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] = [{ text: promptText }];
 
     if (base64Image) {
         parts.unshift({
@@ -252,13 +253,13 @@ Important:
 
             // Extract Grounding Metadata
             const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
-                ?.map((chunk: any) => {
-                    if (chunk.web) {
+                ?.map((chunk) => {
+                    if (chunk.web?.title && chunk.web.uri) {
                         return { title: chunk.web.title, uri: chunk.web.uri };
                     }
                     return null;
                 })
-                .filter((source: any) => source !== null) || [];
+                .filter((source): source is { title: string; uri: string } => source !== null) || [];
 
             console.log(`Successfully used model: ${model}`);
             return {
@@ -273,7 +274,7 @@ Important:
             lastError = error as Error;
             
             // If we get a rate limit error (429), add a small delay before trying the next model
-            if ((error as any).status === 429) {
+            if (error && typeof error === 'object' && 'status' in error && error.status === 429) {
                 console.log(`Rate limited on ${model}, waiting before next attempt...`);
                 await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
             }
