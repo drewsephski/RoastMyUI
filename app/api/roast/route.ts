@@ -32,7 +32,7 @@ const normalizeUrl = (url: string): string => {
 
 const captureScreenshot = async (url: string): Promise<string | null> => {
     console.log(`Starting screenshot capture for URL: ${url}`);
-    
+
     // Normalize and validate URL
     const normalizedUrl = normalizeUrl(url);
     console.log(`Normalized URL: ${normalizedUrl}`);
@@ -51,11 +51,19 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
     try {
         if (isProduction) {
             console.log("Setting CHROME_PATH environment variable");
-            process.env.CHROME_PATH = process.env.CHROME_PATH || await chromium.executablePath();
+            if (!process.env.CHROME_PATH) {
+                try {
+                    process.env.CHROME_PATH = await chromium.executablePath();
+                } catch (e) {
+                    console.error("Failed to get chromium executable path:", e);
+                }
+            }
+            console.log(`CHROME_PATH is set to: ${process.env.CHROME_PATH}`);
+
             console.log("Initializing Chromium in production mode");
             browser = await puppeteerCore.launch({
                 args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
-                executablePath: await chromium.executablePath(),
+                executablePath: process.env.CHROME_PATH || await chromium.executablePath(),
                 headless: true,
             });
         } else {

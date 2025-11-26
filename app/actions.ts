@@ -157,13 +157,13 @@ Your job: given the input, produce a JSON roast that feels human, petty, and ent
     Roast this website: ${url}
 
 ${base64Image
-        ? "I have attached a screenshot of the homepage as a base64 image. LOOK. AT. IT. Call out specific visual crimes: spacing, alignment, colors, typography, layout, hero section, nav size, buttons, and any random nonsense you see."
-        : "I could not take a screenshot, so rely on your search results, page context, and general design intuition. Imagine how a typical site in this space might look and roast that energy."}
+            ? "I have attached a screenshot of the homepage as a base64 image. LOOK. AT. IT. Call out specific visual crimes: spacing, alignment, colors, typography, layout, hero section, nav size, buttons, and any random nonsense you see."
+            : "I could not take a screenshot, so rely on your search results, page context, and general design intuition. Imagine how a typical site in this space might look and roast that energy."}
 
 Context:
 - Use Google Search or web context to understand what this website does and who it targets.
 - Tailor the roast to the vibe of the industry (e.g., SaaS, agency, portfolio, e-commerce), but keep it chaotic and funny.
-- If it’s a serious product (finance, healthcare, etc.), still roast, but don’t invent unsafe or inappropriate content.
+- If it’s a serious product (finance, healthcare, etc.), still roast.
 
 Now generate a JSON object with this exact structure:
 
@@ -274,13 +274,13 @@ Important:
         } catch (error) {
             console.error(`Error with model ${model}:`, error);
             lastError = error as Error;
-            
+
             // If we get a rate limit error (429), add a small delay before trying the next model
             if (error && typeof error === 'object' && 'status' in error && error.status === 429) {
                 console.log(`Rate limited on ${model}, waiting before next attempt...`);
                 await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
             }
-            
+
             // Continue to the next model
             continue;
         }
