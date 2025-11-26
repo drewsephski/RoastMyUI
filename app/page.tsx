@@ -6,6 +6,7 @@ import { RoastForm } from '@/components/RoastForm';
 import { RoastResult } from '@/components/RoastResult';
 import { LoadingState } from '@/components/LoadingState';
 import { Flame, MessageCircle, Repeat, Heart, BarChart2 } from 'lucide-react';
+import Link from 'next/link';
 
 interface RoastData {
   url: string;
@@ -258,7 +259,9 @@ const App: React.FC = () => {
 
       <footer className="w-full p-4 md:p-6 text-center z-10 border-t border-white/5">
         <p className="text-neutral-600 text-[10px] md:text-xs font-mono">
-          &copy; {new Date().getFullYear()} ROAST MY UI LABS. DO NOT TAKE THIS PERSONALLY.
+          © {new Date().getFullYear()} ROAST MY UI LABS. DO NOT TAKE THIS PERSONALLY.
+          &nbsp;|&nbsp;
+          <Link href="/privacy" className="text-rose-500 hover:underline">Privacy Policy</Link>
         </p>
       </footer>
     </div>

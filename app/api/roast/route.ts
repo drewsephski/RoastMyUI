@@ -118,14 +118,29 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
     }
 };
 
+export async function OPTIONS() {
+    return NextResponse.json({}, {
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        },
+    });
+}
+
 export async function POST(request: NextRequest) {
     try {
-        const { url } = await request.json();
+        const { url, screenshot } = await request.json();
 
         if (!url) {
             return NextResponse.json(
                 { error: "URL is required" },
-                { status: 400 }
+                {
+                    status: 400,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    }
+                }
             );
         }
 
@@ -134,14 +149,19 @@ export async function POST(request: NextRequest) {
             console.error("API_KEY is not defined");
             return NextResponse.json(
                 { error: "API_KEY is not configured" },
-                { status: 500 }
+                {
+                    status: 500,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    }
+                }
             );
         }
 
         const ai = new GoogleGenAI({ apiKey });
 
         // 1. Try to get the visual data
-        const base64Image = await captureScreenshot(url);
+        const base64Image = screenshot ? screenshot.replace(/^data:image\/\w+;base64,/, "") : await captureScreenshot(url);
 
         const systemInstruction = `
     You are a savage, unhinged Gen Z UI/UX Designer and Critic who roasts websites with surgical precision and toxic honesty.
@@ -311,7 +331,12 @@ Important:
             console.error("Failed to parse JSON from roast:", text);
             return NextResponse.json(
                 { error: "The AI was too chaotic and returned invalid JSON. Try again." },
-                { status: 500 }
+                {
+                    status: 500,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    }
+                }
             );
         }
 
@@ -334,12 +359,21 @@ Important:
             screenshot: base64Image ? `data:image/jpeg;base64,${base64Image}` : undefined,
         };
 
-        return NextResponse.json(roastData);
+        return NextResponse.json(roastData, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+        });
     } catch (error) {
         console.error("Gemini Roast Error:", error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "An error occurred while generating the roast" },
-            { status: 500 }
+            {
+                status: 500,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                }
+            }
         );
     }
 }
