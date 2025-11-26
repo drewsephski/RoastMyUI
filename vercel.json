@@ -3,7 +3,7 @@
     "app/api/roast/route.ts": {
       "maxDuration": 60,
       "memory": 2048,
-      "includeFiles": ["node_modules/@sparticuz/chromium/**"]
+      "includeFiles": "node_modules/@sparticuz/chromium/**"
     }
   }
 }
