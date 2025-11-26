@@ -248,7 +248,7 @@ Important:
             let parsed;
             try {
                 parsed = JSON.parse(text);
-            } catch (parseError) {
+            } catch (parseError: unknown) {
                 console.error(`Failed to parse JSON from ${model}:`, text);
                 throw new Error("The AI returned invalid JSON. Trying next model...");
             }

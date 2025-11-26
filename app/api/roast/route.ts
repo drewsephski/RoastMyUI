@@ -31,29 +31,35 @@ const normalizeUrl = (url: string): string => {
 };
 
 const captureScreenshot = async (url: string): Promise<string | null> => {
+    console.log(`Starting screenshot capture for URL: ${url}`);
+    
+    // Normalize and validate URL
+    const normalizedUrl = normalizeUrl(url);
+    console.log(`Normalized URL: ${normalizedUrl}`);
+
     try {
-        // Normalize and validate URL
-        const normalizedUrl = normalizeUrl(url);
+        new URL(normalizedUrl);
+    } catch (error: unknown) {
+        console.error("Invalid URL format:", { url, normalizedUrl, error: error instanceof Error ? error.message : String(error) });
+        return null;
+    }
 
-        // Validate URL format
-        try {
-            new URL(normalizedUrl);
-        } catch {
-            console.error("Invalid URL format:", url);
-            return null;
-        }
+    let browser;
+    const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL;
+    console.log(`Environment: ${isProduction ? 'Production' : 'Development'}`);
 
-        let browser;
-
-        if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
-            // Production: Use @sparticuz/chromium
+    try {
+        if (isProduction) {
+            console.log("Setting CHROME_PATH environment variable");
+            process.env.CHROME_PATH = process.env.CHROME_PATH || await chromium.executablePath();
+            console.log("Initializing Chromium in production mode");
             browser = await puppeteerCore.launch({
                 args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
                 executablePath: await chromium.executablePath(),
                 headless: true,
             });
         } else {
-            // Development: Use local puppeteer
+            console.log("Initializing local Puppeteer");
             const { default: puppeteer } = await import("puppeteer");
             browser = await puppeteer.launch({
                 headless: true,
@@ -61,23 +67,46 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
             });
         }
 
+        console.log("Browser launched, creating new page");
         const page = await browser.newPage();
         await page.setViewport({ width: 1280, height: 800 });
 
-        // Set a user agent to avoid being blocked
-        await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+        console.log(`Navigating to URL: ${normalizedUrl}`);
+        await page.goto(normalizedUrl, {
+            waitUntil: "networkidle0",
+            timeout: 30000
+        }).catch(error => {
+            console.error("Page navigation error:", error);
+            throw error;
+        });
 
-        await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 30000 });
+        console.log("Taking screenshot");
+        const screenshot = await page.screenshot({
+            encoding: "base64",
+            type: "jpeg",
+            quality: 80
+        });
 
-        // Take a screenshot
-        const base64 = await page.screenshot({ encoding: "base64", type: "jpeg", quality: 80 });
-        console.log(`Screenshot base64 size: ${base64 ? base64.length : 0} bytes`);
+        const size = screenshot ? screenshot.length : 0;
+        console.log(`Screenshot captured successfully, size: ${size} bytes`);
 
-        await browser.close();
-        return base64 as string;
-    } catch (error) {
-        console.error("Screenshot capture failed:", error);
-        return null;
+        return screenshot as string;
+
+    } catch (browserError: unknown) {
+        const error = browserError instanceof Error ? browserError : new Error(String(browserError));
+        console.error("Browser/Puppeteer error:", {
+            error: error.message,
+            stack: error.stack,
+            isProduction
+        });
+        return null; // Return null on browser errors
+    } finally {
+        if (browser) {
+            console.log("Closing browser");
+            await browser.close().catch(error => {
+                console.error("Error closing browser:", error);
+            });
+        }
     }
 };
 
