@@ -15,7 +15,7 @@ export default function PrivacyPage() {
                     Privacy Policy
                 </h1>
                 <p className="text-lg text-neutral-300 mb-4">
-                    Effective date: November 26 2025 – Your data, our responsibility.
+                    Effective date: November, 26, 2025 – Your data, our responsibility.
                 </p>
                 <Link href="/" className="inline-block px-6 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-full transition-transform transform hover:scale-105">
                     ← Back to Home
@@ -25,11 +25,11 @@ export default function PrivacyPage() {
             {/* Intro Text */}
             <article className="prose prose-invert max-w-4xl w-full">
                 <p>
-                    This privacy policy explains what data the <strong>Roast My UI</strong> web application ("the Service") collects, how it is used, and how it is protected.
+                    This privacy policy explains what data the <strong>Roast My UI</strong> web application (&quot;the Service&quot;) collects, how it is used, and how it is protected.
                 </p>
 
                 {/* Data‑Usage Table */}
-                <h2 id="data-usage" className="text-2xl font-bold mt-8 mb-4">Data Usage Disclosure (as submitted to the Chrome Web Store)</h2>
+                <h2 id="data-usage" className="text-2xl font-bold mt-8 mb-4">Data Usage Disclosure (as submitted to the Chrome Web Store)</h2>
                 <div className="overflow-x-auto">
                     <table className="w-full border border-gray-700">
                         <thead className="bg-gray-800">

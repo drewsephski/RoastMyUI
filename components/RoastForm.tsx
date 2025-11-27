@@ -34,9 +34,9 @@ export const RoastForm: React.FC<RoastFormProps> = ({ onSubmit }) => {
                 />
                 <button
                     type="submit"
-                    className="bg-white text-black hover:bg-rose-500 hover:text-white transition-all duration-300 font-bold py-3 px-6 rounded-md flex items-center justify-center gap-2 uppercase tracking-wide text-xs sm:text-sm w-full sm:w-auto"
+                    className="bg-white text-black hover:bg-rose-500 hover:text-white transition-all duration-300 font-bold py-3 px-6 rounded-md flex items-center justify-center gap-2 uppercase tracking-wide text-xs sm:text-sm w-full sm:w-auto group"
                 >
-                    Roast It <ArrowRight className="w-4 h-4" />
+                    Roast It <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </button>
             </div>
         </form>

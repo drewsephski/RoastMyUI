@@ -5,26 +5,14 @@ import Image from 'next/image';
 import { RoastForm } from '@/components/RoastForm';
 import { RoastResult } from '@/components/RoastResult';
 import { LoadingState } from '@/components/LoadingState';
-import { Flame, MessageCircle, Repeat, Heart, BarChart2, Coins, Plus } from 'lucide-react';
+import { ClientTweetCard as TweetCard } from '@/components/ui/tweet-card';
+import { Flame, Coins, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { getUserCredits, generateRoast } from './actions';
+import { getUserCredits, generateRoast, type RoastData } from './actions';
 import { PricingModal } from '@/components/PricingModal';
 import { PaymentSuccessHandler } from '@/components/PaymentSuccessHandler';
 import { Suspense } from 'react';
-
-interface RoastData {
-  url: string;
-  score: number;
-  tagline: string;
-  roast: string;
-  shareText: string;
-  strengths: string[];
-  sources: { title: string; uri: string }[];
-  weaknesses: string[];
-  screenshot?: string;
-  remainingCredits?: number;
-}
 
 const App: React.FC = () => {
   const [roastData, setRoastData] = useState<RoastData | null>(null);
@@ -152,77 +140,57 @@ const App: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-12 w-full">
-              {/* Card 1 */}
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:border-rose-500/30 transition duration-500 group text-left hover:shadow-[0_0_30px_rgba(0,0,0,0.3)] hover:-translate-y-1">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-neutral-900/50 flex items-center justify-center flex-shrink-0 border border-white/10 shadow-inner">
-                    <span className="text-xl">💀</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-sm leading-tight mb-1">
-                      <span className="font-bold text-white truncate">Roast My UI</span>
-                      <span className="text-neutral-500 text-xs">@roastmyui · 2h</span>
-                    </div>
-                    <p className="text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap font-light">
-                      <span className="font-bold text-rose-400 text-base mr-1">3.87/10</span> ts aint tuff 💀 this site&apos;s design got me big mad fr 🔥 layout lookin mid af, color palette screams npc energy 🚩 typography hit different (wrong way)
-                    </p>
-                    <div className="flex justify-between items-center mt-4 text-neutral-600 max-w-[85%]">
-                      <MessageCircle className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
-                      <Repeat className="w-4 h-4 hover:text-green-400 transition cursor-pointer" />
-                      <Heart className="w-4 h-4 hover:text-rose-500 transition cursor-pointer" />
-                      <BarChart2 className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2 */}
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:border-rose-500/30 transition duration-500 group text-left hover:shadow-[0_0_30px_rgba(0,0,0,0.3)] hover:-translate-y-1">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-neutral-900/50 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
-                    <span className="text-xl">🤡</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-sm leading-tight mb-1">
-                      <span className="font-bold text-white truncate">Roast My UI</span>
-                      <span className="text-neutral-500 text-xs">@roastmyui · 5h</span>
-                    </div>
-                    <p className="text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap font-light">
-                      <span className="font-bold text-rose-400 text-base mr-1">4.15/10</span> ts a whole MESS 💀 Low-key mid website w/ zero vibe check passed 🚩 Spacing so trash it&apos;s giving NPC energy fr 🤡 UI lookin delulu af
-                    </p>
-                    <div className="flex justify-between items-center mt-4 text-neutral-600 max-w-[85%]">
-                      <MessageCircle className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
-                      <Repeat className="w-4 h-4 hover:text-green-400 transition cursor-pointer" />
-                      <Heart className="w-4 h-4 hover:text-rose-500 transition cursor-pointer" />
-                      <BarChart2 className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3 */}
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:border-rose-500/30 transition duration-500 group text-left hover:shadow-[0_0_30px_rgba(0,0,0,0.3)] hover:-translate-y-1">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-neutral-900/50 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
-                    <span className="text-xl">🗑️</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-sm leading-tight mb-1">
-                      <span className="font-bold text-white truncate">Roast My UI</span>
-                      <span className="text-neutral-500 text-xs">@roastmyui · 1d</span>
-                    </div>
-                    <p className="text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap font-light">
-                      <span className="font-bold text-rose-400 text-base mr-1">2.73/10</span> mid AF website caught in 4k with NPC lookin&apos; ass layout 🚨 ts aint tuff bruh—spacing more awkward than my dating life
-                    </p>
-                    <div className="flex justify-between items-center mt-4 text-neutral-600 max-w-[85%]">
-                      <MessageCircle className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
-                      <Repeat className="w-4 h-4 hover:text-green-400 transition cursor-pointer" />
-                      <Heart className="w-4 h-4 hover:text-rose-500 transition cursor-pointer" />
-                      <BarChart2 className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <TweetCard
+                avatar="💀"
+                name="Roast My UI"
+                handle="roastmyui"
+                time="2h"
+                content={
+                  <span>
+                    <span className="font-bold text-rose-400 text-base mr-1">3.87/10</span> ts aint tuff 💀 this site&apos;s design got me big mad fr 🔥 layout lookin mid af, color palette screams npc energy 🚩 typography hit different (wrong way)
+                  </span>
+                }
+                metrics={{
+                  replies: "42",
+                  reposts: "12",
+                  likes: "156",
+                  views: "1.2k"
+                }}
+              />
+              <TweetCard
+                avatar="🗑️"
+                name="Roast My UI"
+                handle="roastmyui"
+                time="1d"
+                content={
+                  <span>
+                    <span className="font-bold text-rose-400 text-base mr-1">2.73/10</span> mid AF website caught in 4k with NPC lookin&apos; ass layout 🚨 ts aint tuff bruh—spacing more awkward than my dating life
+                  </span>
+                }
+                metrics={{
+                  replies: "156",
+                  reposts: "84",
+                  likes: "1.5k",
+                  views: "12k"
+                }}
+              />
+              <TweetCard
+                avatar="🤡"
+                name="Roast My UI"
+                handle="roastmyui"
+                time="5h"
+                content={
+                  <span>
+                    <span className="font-bold text-rose-400 text-base mr-1">4.15/10</span> ts a whole MESS 💀 Low-key mid website w/ zero vibe check passed 🚩 Spacing so trash it&apos;s giving NPC energy fr 🤡 UI lookin delulu af
+                  </span>
+                }
+                metrics={{
+                  replies: "28",
+                  reposts: "5",
+                  likes: "89",
+                  views: "850"
+                }}
+              />
             </div>
           </div>
         )}
@@ -299,7 +267,7 @@ const App: React.FC = () => {
                 />
 
                 {/* Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+                <div className="absolute inset-0 bg-linear-to-t from-neutral-950/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
               </div>
             </div>
           </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React from 'react';
 import { Share2, RefreshCcw, Copy, Check, Eye } from 'lucide-react';
 
@@ -9,6 +10,9 @@ interface RoastData {
     shareText: string;
     strengths: string[];
     weaknesses: string[];
+    visualCrimes: string[];
+    bestPart: string;
+    worstPart: string;
     sources: { title: string; uri: string }[];
     screenshot?: string;
 }
@@ -116,7 +120,7 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                         {data.roast}
                     </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div className="p-4 bg-red-950/20 border border-red-500/20 rounded">
                             <h4 className="text-red-400 text-xs font-bold uppercase mb-2">Major L&apos;s</h4>
                             <ul className="text-xs text-neutral-400 space-y-1">
@@ -128,6 +132,40 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                             <ul className="text-xs text-neutral-400 space-y-1">
                                 {data.strengths.map((s, i) => <li key={i}>- {s}</li>)}
                             </ul>
+                        </div>
+                    </div>
+
+                    {/* New Sections: Visual Crimes & Best/Worst */}
+                    <div className="space-y-4 mb-8">
+                        {data.visualCrimes && data.visualCrimes.length > 0 && (
+                            <div className="p-4 bg-neutral-950/40 border border-white/5 rounded">
+                                <h4 className="text-neutral-500 text-xs font-bold uppercase mb-2 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                    Visual Crimes Detected
+                                </h4>
+                                <ul className="text-xs text-neutral-300 space-y-1 font-mono">
+                                    {data.visualCrimes.map((crime, i) => (
+                                        <li key={i} className="flex items-start gap-2">
+                                            <span className="text-red-500/50">x</span> {crime}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {data.bestPart && (
+                                <div className="p-3 bg-white/5 border border-white/5 rounded">
+                                    <span className="text-[10px] text-neutral-500 uppercase font-bold block mb-1">Surprisingly Good</span>
+                                    <p className="text-xs text-neutral-300">{data.bestPart}</p>
+                                </div>
+                            )}
+                            {data.worstPart && (
+                                <div className="p-3 bg-red-500/5 border border-red-500/10 rounded">
+                                    <span className="text-[10px] text-red-400/70 uppercase font-bold block mb-1">Absolute Worst</span>
+                                    <p className="text-xs text-neutral-300">{data.worstPart}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
