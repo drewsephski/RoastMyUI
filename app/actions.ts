@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
 import { OpenAI } from "openai";
@@ -482,9 +483,11 @@ type MessageContent =
   | { type: 'text'; text: string }
   | { type: 'image_url'; image_url: { url: string } };
 
+// Update the Message type to match OpenAI's ChatCompletionMessageParam
 type Message = 
   | { role: 'system'; content: string }
-  | { role: 'user' | 'assistant'; content: string | MessageContent[] };
+  | { role: 'user'; content: string | MessageContent[] }
+  | { role: 'assistant'; content: string };
 
 // Build the content parts
 const messages: Message[] = [
