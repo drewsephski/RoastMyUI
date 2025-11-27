@@ -489,7 +489,12 @@ type Message =
 // Build the content parts
 const messages: Message[] = [
     { role: 'system', content: systemInstruction },
-    { role: 'user', content: [] }
+    { 
+        role: 'user', 
+        content: [
+            { type: 'text', text: promptText }
+        ] as MessageContent[]
+    }
 ];
 
 // Add image if available
@@ -504,12 +509,6 @@ if (base64Image) {
         });
     }
 }
-
-// Add text prompt
-messages[1].content.push({
-    type: 'text',
-    text: promptText
-});
 
     let lastError: Error | null = null;
 
