@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
@@ -12,12 +13,12 @@ import { Polar } from "@polar-sh/sdk";
 
 const polar = new Polar({
     accessToken: process.env.POLAR_ACCESS_TOKEN!,
-    server: "sandbox", // Use 'production' in prod
+    server: "production", // Use 'production' in prod
 });
 
 const PRODUCT_IDS = {
-    CREDITS_15: "471aae7a-10a5-4d4a-9b4c-3f5cab2210e7",
-    CREDITS_40: "157b126c-4ff9-4c7c-aced-5331a7834cd5",
+    CREDITS_15: "7ba92f29-5157-43d7-a2d5-32bc4a708111",
+    CREDITS_40: "1dc7dc25-1a87-478a-b752-a0af02fb0cbf",
 };
 
 export interface RoastData {
