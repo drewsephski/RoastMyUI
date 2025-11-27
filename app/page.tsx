@@ -81,7 +81,7 @@ const App: React.FC = () => {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-900/20 blur-[100px] rounded-full pointer-events-none" />
 
-      <header className="w-full p-4 md:p-6 flex justify-between items-center z-10 border-b border-white/10 backdrop-blur-sm sticky top-0 bg-neutral-950/80">
+      <header className="w-full p-4 md:p-6 flex justify-between items-center z-50 border-b border-white/5 backdrop-blur-xl sticky top-0 bg-neutral-950/50 supports-[backdrop-filter]:bg-neutral-950/20">
         <div className="flex items-center gap-2 cursor-pointer" onClick={handleReset}>
           <Flame className="w-5 h-5 md:w-6 md:h-6 text-rose-500" />
           <span className="font-bold text-base md:text-lg tracking-tight uppercase">Roast My UI</span>
@@ -118,15 +118,19 @@ const App: React.FC = () => {
           <RoastResult data={roastData} onReset={handleReset} />
         ) : (
           <div className="w-full max-w-6xl flex flex-col items-center text-center space-y-8 md:space-y-12 animate-in fade-in zoom-in duration-500 pt-8 md:pt-0">
-            <div className="space-y-4 md:space-y-6">
-              <div className="inline-block border border-rose-500/30 bg-rose-500/10 px-3 py-1 rounded-full">
-                <span className="text-rose-400 text-[10px] md:text-xs font-mono uppercase tracking-widest">
-                  AI-Powered Design Critique
+            <div className="space-y-6 md:space-y-8">
+              <div className="inline-flex items-center gap-2 border border-rose-500/20 bg-rose-500/5 px-4 py-1.5 rounded-full backdrop-blur-md">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                </span>
+                <span className="text-rose-300 text-[10px] md:text-xs font-medium uppercase tracking-widest">
+                  AI-Powered Design Analysis
                 </span>
               </div>
-              <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-[0.9] pb-2">
+              <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter leading-[0.9] pb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-neutral-500">
                 YOUR UI IS <br />
-                <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-purple-600 drop-shadow-[0_0_30px_rgba(225,29,72,0.3)]">
                   PROBABLY MID.
                 </span>
               </h1>
@@ -149,20 +153,20 @@ const App: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-12 w-full">
               {/* Card 1 */}
-              <div className="bg-black border border-neutral-800 p-4 rounded-xl hover:border-neutral-700 transition duration-300 group text-left">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0 border border-neutral-700">
-                    <span className="text-lg">💀</span>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:border-rose-500/30 transition duration-500 group text-left hover:shadow-[0_0_30px_rgba(0,0,0,0.3)] hover:-translate-y-1">
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-full bg-neutral-900/50 flex items-center justify-center flex-shrink-0 border border-white/10 shadow-inner">
+                    <span className="text-xl">💀</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 text-sm leading-tight">
+                    <div className="flex items-center gap-2 text-sm leading-tight mb-1">
                       <span className="font-bold text-white truncate">Roast My UI</span>
-                      <span className="text-neutral-500 truncate">@roastmyui · 2h</span>
+                      <span className="text-neutral-500 text-xs">@roastmyui · 2h</span>
                     </div>
-                    <p className="text-neutral-300 text-sm mt-1 leading-normal whitespace-pre-wrap">
-                      <span className="font-black text-rose-500 text-base mr-1">3.87/10</span> ts aint tuff 💀 this site&apos;s design got me big mad fr 🔥 layout lookin mid af, color palette screams npc energy 🚩 typography hit different (wrong way) sybau spacing so whack it caught in 4k being whole mess 👀
+                    <p className="text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap font-light">
+                      <span className="font-bold text-rose-400 text-base mr-1">3.87/10</span> ts aint tuff 💀 this site&apos;s design got me big mad fr 🔥 layout lookin mid af, color palette screams npc energy 🚩 typography hit different (wrong way)
                     </p>
-                    <div className="flex justify-between items-center mt-3 text-neutral-500 max-w-[85%]">
+                    <div className="flex justify-between items-center mt-4 text-neutral-600 max-w-[85%]">
                       <MessageCircle className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
                       <Repeat className="w-4 h-4 hover:text-green-400 transition cursor-pointer" />
                       <Heart className="w-4 h-4 hover:text-rose-500 transition cursor-pointer" />
@@ -173,20 +177,20 @@ const App: React.FC = () => {
               </div>
 
               {/* Card 2 */}
-              <div className="bg-black border border-neutral-800 p-4 rounded-xl hover:border-neutral-700 transition duration-300 group text-left">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center shrink-0 border border-neutral-700">
-                    <span className="text-lg">🤡</span>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:border-rose-500/30 transition duration-500 group text-left hover:shadow-[0_0_30px_rgba(0,0,0,0.3)] hover:-translate-y-1">
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-full bg-neutral-900/50 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+                    <span className="text-xl">🤡</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 text-sm leading-tight">
+                    <div className="flex items-center gap-2 text-sm leading-tight mb-1">
                       <span className="font-bold text-white truncate">Roast My UI</span>
-                      <span className="text-neutral-500 truncate">@roastmyui · 5h</span>
+                      <span className="text-neutral-500 text-xs">@roastmyui · 5h</span>
                     </div>
-                    <p className="text-neutral-300 text-sm mt-1 leading-normal whitespace-pre-wrap">
-                      <span className="font-black text-rose-500 text-base mr-1">4.15/10</span> ts a whole MESS 💀 Low-key mid website w/ zero vibe check passed 🚩 Spacing so trash it&apos;s giving NPC energy fr 🤡 UI lookin delulu af, contrast so bad it&apos;s caught in 4k of design crimes 😭
+                    <p className="text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap font-light">
+                      <span className="font-bold text-rose-400 text-base mr-1">4.15/10</span> ts a whole MESS 💀 Low-key mid website w/ zero vibe check passed 🚩 Spacing so trash it&apos;s giving NPC energy fr 🤡 UI lookin delulu af
                     </p>
-                    <div className="flex justify-between items-center mt-3 text-neutral-500 max-w-[85%]">
+                    <div className="flex justify-between items-center mt-4 text-neutral-600 max-w-[85%]">
                       <MessageCircle className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
                       <Repeat className="w-4 h-4 hover:text-green-400 transition cursor-pointer" />
                       <Heart className="w-4 h-4 hover:text-rose-500 transition cursor-pointer" />
@@ -197,20 +201,20 @@ const App: React.FC = () => {
               </div>
 
               {/* Card 3 */}
-              <div className="bg-black border border-neutral-800 p-4 rounded-xl hover:border-neutral-700 transition duration-300 group text-left">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center shrink-0 border border-neutral-700">
-                    <span className="text-lg">🗑️</span>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:border-rose-500/30 transition duration-500 group text-left hover:shadow-[0_0_30px_rgba(0,0,0,0.3)] hover:-translate-y-1">
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-full bg-neutral-900/50 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+                    <span className="text-xl">🗑️</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 text-sm leading-tight">
+                    <div className="flex items-center gap-2 text-sm leading-tight mb-1">
                       <span className="font-bold text-white truncate">Roast My UI</span>
-                      <span className="text-neutral-500 truncate">@roastmyui · 1d</span>
+                      <span className="text-neutral-500 text-xs">@roastmyui · 1d</span>
                     </div>
-                    <p className="text-neutral-300 text-sm mt-1 leading-normal whitespace-pre-wrap">
-                      <span className="font-black text-rose-500 text-base mr-1">2.73/10</span> mid AF website caught in 4k with NPC lookin&apos; ass layout 🚨 ts aint tuff bruh—spacing more awkward than my dating life, contrast lower than my caffeine tolerance, typography screaming touch grass rn 💀
+                    <p className="text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap font-light">
+                      <span className="font-bold text-rose-400 text-base mr-1">2.73/10</span> mid AF website caught in 4k with NPC lookin&apos; ass layout 🚨 ts aint tuff bruh—spacing more awkward than my dating life
                     </p>
-                    <div className="flex justify-between items-center mt-3 text-neutral-500 max-w-[85%]">
+                    <div className="flex justify-between items-center mt-4 text-neutral-600 max-w-[85%]">
                       <MessageCircle className="w-4 h-4 hover:text-blue-400 transition cursor-pointer" />
                       <Repeat className="w-4 h-4 hover:text-green-400 transition cursor-pointer" />
                       <Heart className="w-4 h-4 hover:text-rose-500 transition cursor-pointer" />
@@ -275,17 +279,27 @@ const App: React.FC = () => {
             </div>
 
             {/* Right: Product Image */}
-            <div className="order-1 lg:order-2 relative group">
-              <div className="absolute -inset-4 bg-linear-to-r from-rose-500/20 to-purple-500/20 rounded-2xl blur-2xl opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
-              <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+            <div className="order-1 lg:order-2 relative group perspective-1000">
+              {/* Glow Effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 to-purple-600 rounded-2xl blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+
+              {/* Main Image Container */}
+              <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_80px_-20px_rgba(244,63,94,0.3)] transition-all duration-700 transform group-hover:scale-[1.02] group-hover:rotate-1 bg-neutral-900">
+
+                {/* Shine Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out z-20 pointer-events-none" />
+
                 <Image
                   src="/product-image.png"
                   alt="Roast My UI Product Screenshot"
                   width={1200}
                   height={800}
-                  className="w-full h-auto"
+                  className="w-full h-auto relative z-10"
                   priority
                 />
+
+                {/* Overlay Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
               </div>
             </div>
           </div>

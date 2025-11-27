@@ -19,8 +19,8 @@ export const RoastForm: React.FC<RoastFormProps> = ({ onSubmit }) => {
 
     return (
         <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-rose-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-neutral-900 border border-neutral-800 p-2 rounded-lg shadow-2xl gap-2 sm:gap-0">
+            <div className="absolute -inset-1 bg-gradient-to-r from-rose-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-white/5 backdrop-blur-sm border border-white/10 p-2 rounded-lg shadow-2xl gap-2 sm:gap-0">
                 <div className="pl-4 text-neutral-500 hidden sm:block">
                     <Globe className="w-5 h-5" />
                 </div>

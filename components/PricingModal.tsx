@@ -29,8 +29,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="relative w-full max-w-3xl bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="relative w-full max-w-3xl bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 ring-1 ring-white/5">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-white transition rounded-full hover:bg-neutral-800"
@@ -49,7 +49,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
 
                 <div className="grid md:grid-cols-2 gap-6 p-8 pt-0">
                     {/* Starter Pack */}
-                    <div className="relative group p-6 bg-neutral-950 border border-neutral-800 rounded-xl hover:border-rose-500/50 transition-all duration-300">
+                    <div className="relative group p-6 bg-white/5 border border-white/10 rounded-xl hover:border-rose-500/50 transition-all duration-300">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-neutral-800 text-neutral-300 text-xs font-bold px-3 py-1 rounded-full border border-neutral-700">
                             STARTER
                         </div>
@@ -88,7 +88,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                     </div>
 
                     {/* Pro Pack */}
-                    <div className="relative group p-6 bg-neutral-950 border border-rose-500/30 rounded-xl hover:border-rose-500 transition-all duration-300 shadow-[0_0_30px_rgba(244,63,94,0.1)]">
+                    <div className="relative group p-6 bg-white/5 border border-rose-500/30 rounded-xl hover:border-rose-500 transition-all duration-300 shadow-[0_0_30px_rgba(244,63,94,0.1)]">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                             BEST VALUE
                         </div>

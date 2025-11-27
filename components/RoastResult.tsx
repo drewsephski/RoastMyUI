@@ -42,12 +42,12 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
         <div className="w-full max-w-5xl mx-auto perspective-1000 animate-in slide-in-from-bottom-10 fade-in duration-700">
 
             {/* Roast Card Container */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-[0px_0px_50px_rgba(244,63,94,0.1)] relative flex flex-col md:flex-row">
+            <div className="bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative flex flex-col md:flex-row ring-1 ring-white/5">
 
                 {/* Left Col: Visuals & Score */}
-                <div className="w-full md:w-[40%] bg-neutral-950 border-r border-neutral-800 flex flex-col relative">
+                <div className="w-full md:w-[40%] bg-black/20 border-r border-white/5 flex flex-col relative">
                     {/* Mac Header */}
-                    <div className="bg-neutral-950 p-4 border-b border-neutral-800 flex items-center gap-2 z-10">
+                    <div className="bg-white/5 p-4 border-b border-white/5 flex items-center gap-2 z-10 backdrop-blur-sm">
                         <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
                         <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
                         <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
@@ -84,7 +84,7 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                     </div>
 
                     {/* Stats */}
-                    <div className="p-6 grid grid-cols-2 gap-4 flex-grow bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+                    <div className="p-6 grid grid-cols-2 gap-4 flex-grow bg-gradient-to-b from-neutral-900/50 to-neutral-950/50">
                         <div className="space-y-1">
                             <h4 className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Design Integrity</h4>
                             <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
@@ -107,7 +107,7 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                 </div>
 
                 {/* Right Col: Roast Content */}
-                <div className="w-full md:w-[60%] p-6 md:p-10 flex flex-col bg-neutral-900">
+                <div className="w-full md:w-[60%] p-6 md:p-10 flex flex-col bg-transparent">
                     <h2 className="text-2xl md:text-3xl font-bold uppercase leading-none mb-4 md:mb-6 text-white tracking-tight">
                         &quot;{data.tagline}&quot;
                     </h2>
