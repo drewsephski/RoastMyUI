@@ -19,19 +19,23 @@ export const metadata: Metadata = {
   description: "Get your UI roasted by AI",
 };
 
+import { ClerkProvider } from "@clerk/nextjs";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable}`}>
-      <body
-        className="font-sans antialiased bg-background text-foreground"
-      >
-        <div className="noise-bg" />
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable}`}>
+        <body
+          className="font-sans antialiased bg-background text-foreground"
+        >
+          <div className="noise-bg" />
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

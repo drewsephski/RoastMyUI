@@ -6,13 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "drizzle-kit push"
   },
   "dependencies": {
-    "@google/genai": "^1.30.0",
+    "@clerk/nextjs": "^6.35.5",
+    "@neondatabase/serverless": "^1.0.2",
+    "@polar-sh/sdk": "^0.41.5",
     "@sparticuz/chromium": "^141.0.0",
+    "drizzle-orm": "^0.44.7",
     "lucide-react": "^0.554.0",
     "next": "16.0.4",
+    "openai": "^6.9.1",
     "puppeteer-core": "^24.31.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
@@ -22,6 +27,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.7",
     "eslint": "^9",
     "eslint-config-next": "16.0.4",
     "puppeteer": "^24.31.0",

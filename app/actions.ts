@@ -1,8 +1,23 @@
 "use server";
 
-import { GoogleGenAI } from "@google/genai";
+import { OpenAI } from "openai";
 import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { db } from "@/db";
+import { users, transactions } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
+import { Polar } from "@polar-sh/sdk";
+
+const polar = new Polar({
+    accessToken: process.env.POLAR_ACCESS_TOKEN!,
+    server: "sandbox", // Use 'production' in prod
+});
+
+const PRODUCT_IDS = {
+    CREDITS_15: "471aae7a-10a5-4d4a-9b4c-3f5cab2210e7",
+    CREDITS_40: "157b126c-4ff9-4c7c-aced-5331a7834cd5",
+};
 
 export interface RoastData {
     url: string;
@@ -15,7 +30,176 @@ export interface RoastData {
     sources: { title: string; uri: string }[];
     screenshot?: string;
     modelUsed?: string;
+    remainingCredits: number;
 }
+
+export const getUserCredits = async () => {
+    const { userId } = await auth();
+    if (!userId) return 0;
+
+    const user = await currentUser();
+    if (!user) return 0;
+
+    const dbUser = await db.query.users.findFirst({
+        where: eq(users.clerkId, userId),
+    });
+
+    if (!dbUser) {
+        // Initialize user with 3 credits
+        const [newUser] = await db.insert(users).values({
+            clerkId: userId,
+            email: user.emailAddresses[0].emailAddress,
+            credits: 3,
+        }).returning();
+
+        await db.insert(transactions).values({
+            userId: newUser.id,
+            amount: 3,
+            type: "INITIAL_GRANT",
+            orderId: crypto.randomUUID(), // Add a UUID for initial grants, since there's no polar order.id
+        });
+
+        return 3;
+    }
+
+    return dbUser.credits;
+};
+
+export const addCreditsToUser = async (clerkId: string, amount: number, orderId: string) => {
+    if (amount <= 0) {
+        throw new Error("Credit amount must be positive.");
+    }
+
+    const [updatedUser] = await db
+        .update(users)
+        .set({ credits: sql`${users.credits} + ${amount}` })
+        .where(eq(users.clerkId, clerkId))
+        .returning({ id: users.id, credits: users.credits });
+
+    if (!updatedUser) {
+        throw new Error(`User with clerkId ${clerkId} not found.`);
+    }
+
+    await db.insert(transactions).values({
+        userId: updatedUser.id,
+        amount: amount,
+        type: "PURCHASE",
+        orderId: orderId,
+    });
+
+    console.log(`Added ${amount} credits to user ${clerkId}. New balance: ${updatedUser.credits}`);
+};
+
+export const createCheckout = async (plan: '15_CREDITS' | '40_CREDITS') => {
+    const { userId } = await auth();
+    if (!userId) {
+        throw new Error("You must be signed in to purchase credits.");
+    }
+
+    const user = await currentUser();
+    if (!user) {
+        throw new Error("User not found.");
+    }
+
+    const productId = plan === '15_CREDITS' ? PRODUCT_IDS.CREDITS_15 : PRODUCT_IDS.CREDITS_40;
+
+    try {
+        const result = await polar.checkouts.create({
+            products: [productId],
+            successUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://wan-saccharolytic-rufina.ngrok-free.dev'}/?payment=success&amount=${plan === '15_CREDITS' ? 15 : 40}`,
+            metadata: {
+                userId: userId,
+            },
+            customerEmail: user.emailAddresses[0].emailAddress,
+        });
+
+        return result.url;
+    } catch (error) {
+        console.error("Polar checkout creation failed:", JSON.stringify(error, null, 2));
+        if (error instanceof Error) {
+            console.error("Error message:", error.message);
+            console.error("Error stack:", error.stack);
+        }
+        throw new Error(`Failed to create checkout session: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+};
+
+// Map Product IDs to Credit Amounts
+const PRODUCT_CREDITS_MAP: Record<string, number> = {
+    "471aae7a-10a5-4d4a-9b4c-3f5cab2210e7": 15,
+    "157b126c-4ff9-4c7c-aced-5331a7834cd5": 40,
+};
+
+export const verifyPurchase = async (): Promise<{ creditsAdded: number; newBalance: number }> => {
+    const { userId } = await auth();
+    if (!userId) {
+        throw new Error("You must be signed in to verify purchases.");
+    }
+
+    const user = await currentUser();
+    if (!user) {
+        throw new Error("User not found.");
+    }
+
+    const userEmail = user.emailAddresses[0].emailAddress;
+
+    try {
+        // Fetch recent orders for this user's email from Polar
+        const ordersResponse = await polar.orders.list({
+            limit: 10, // Check last 10 orders
+        });
+
+        let totalCreditsAdded = 0;
+
+        // Filter orders by email and process them
+        for (const order of ordersResponse.result.items || []) {
+            // Check if order belongs to this user
+            if (order.customer?.email !== userEmail) {
+                continue;
+            }
+
+            // Check if we've already processed this order
+            const existingTx = await db.query.transactions.findFirst({
+                where: eq(transactions.orderId, order.id),
+            });
+
+            if (existingTx) {
+                continue; // Already processed
+            }
+
+            // Get product ID and credit amount
+            const productId = order.productId || order.product?.id;
+            if (!productId) {
+                console.warn(`Order ${order.id} missing product ID`);
+                continue;
+            }
+
+            const creditAmount = PRODUCT_CREDITS_MAP[productId];
+            if (!creditAmount) {
+                console.warn(`Unknown product ID: ${productId}`);
+                continue;
+            }
+
+            // Add credits to user
+            console.log(`Verifying and applying order ${order.id} for ${userEmail}: ${creditAmount} credits`);
+            await addCreditsToUser(userId, creditAmount, order.id);
+            totalCreditsAdded += creditAmount;
+        }
+
+        // Get updated balance
+        const dbUser = await db.query.users.findFirst({
+            where: eq(users.clerkId, userId),
+        });
+
+        return {
+            creditsAdded: totalCreditsAdded,
+            newBalance: dbUser?.credits || 0,
+        };
+    } catch (error) {
+        console.error("Purchase verification failed:", error);
+        throw new Error(`Failed to verify purchase: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+};
 
 const captureScreenshot = async (url: string): Promise<string | null> => {
     try {
@@ -61,13 +245,12 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
 
 // Define a list of models to try in order of preference
 const MODEL_FALLBACK_CHAIN = [
-    "gemini-2.5-flash",  // Latest and greatest
-    "gemini-2.5-flash-lite",        // Lighter version
-    "gemini-2.0-flash-001",  // Specific version
-    "gemini-2.0-flash-latest",  // Latest stable
-    "gemini-2.0-flash-lite-preview",  // Lite version
-    "gemini-2.0-flash-lite-001",  // Current fallback
-    "gemma-3-4b-it",  // Gemma model as last resort
+    "openai/gpt-3.5-turbo",         // Fast and cost-effective
+    "anthropic/claude-3-haiku",     // Most cost-effective vision model
+    "openai/gpt-4-vision-preview",  // Best vision model
+    "anthropic/claude-3-opus",      // High quality, good for analysis
+    "anthropic/claude-3-sonnet",    // Balanced quality and speed
+    "google/gemini-pro-vision",     // Google's vision model
 ];
 
 export const generateRoast = async (url: string): Promise<RoastData> => {
@@ -76,7 +259,84 @@ export const generateRoast = async (url: string): Promise<RoastData> => {
         throw new Error("API_KEY is not defined");
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    // 1. Auth Check
+    const user = await currentUser();
+    if (!user) {
+        throw new Error("You must be signed in to roast.");
+    }
+
+    // 2. Lazy Initialization & Credit Check
+    // We'll try to deduct 1 credit. If the user doesn't exist, we create them with 3 credits (minus 1 for this roast = 2).
+    // If they exist but have 0 credits, the update will return 0 rows.
+
+    let remainingCredits = 0;
+
+    // Check if user exists
+    const existingUser = await db.query.users.findFirst({
+        where: eq(users.clerkId, user.id),
+    });
+
+    if (!existingUser) {
+        // Create user with 3 credits, deduct 1 immediately -> 2 credits
+        const [newUser] = await db.insert(users).values({
+            clerkId: user.id,
+            email: user.emailAddresses[0].emailAddress,
+            credits: 2, // 3 - 1
+        }).returning();
+
+        // Log initial grant
+        await db.insert(transactions).values({
+            userId: newUser.id,
+            amount: 3,
+            type: "INITIAL_GRANT",
+            orderId: crypto.randomUUID(), // Add a UUID for initial grants, since there's no polar order.id
+            polarEventId: null, // Explicitly set to null for non-Polar events
+        });
+
+        // Log spend
+        await db.insert(transactions).values({
+            userId: newUser.id,
+            amount: -1,
+            type: "ROAST_SPEND",
+            orderId: crypto.randomUUID(), // Add a UUID for roast spends, since there's no polar order.id
+            polarEventId: null, // Explicitly set to null for non-Polar events
+        });
+
+        remainingCredits = 2;
+    } else {
+        // Atomic deduction
+        const [updatedUser] = await db
+            .update(users)
+            .set({ credits: sql`${users.credits} - 1` })
+            .where(sql`${users.clerkId} = ${user.id} AND ${users.credits} > 0`)
+            .returning({ credits: users.credits, id: users.id });
+
+        if (!updatedUser) {
+            throw new Error("Insufficient credits. Please purchase more to continue roasting.");
+        }
+
+        remainingCredits = updatedUser.credits;
+
+        // Log spend
+        await db.insert(transactions).values({
+            userId: updatedUser.id,
+            amount: -1,
+            type: "ROAST_SPEND",
+            orderId: crypto.randomUUID(), // Add a UUID for roast spends, since there's no polar order.id
+            polarEventId: null, // Explicitly set to null for non-Polar events
+        });
+    }
+
+    const openai = new OpenAI({
+        apiKey: process.env.OPENROUTER_API_KEY,
+        baseURL: "https://openrouter.ai/api/v1",
+        defaultHeaders: {
+            "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL,
+            "X-Title": "Roast My UI"
+        },
+        dangerouslyAllowBrowser: true
+    });
+
     const base64Image = await captureScreenshot(url);
 
     const systemInstruction = `
@@ -87,9 +347,10 @@ Persona:
 - You use slang like: mid, npc energy, cooked, delulu, caught in 4k, touch grass, no cap, vibe check FAILED, cheugy, cooked beyond redemption, cry about it, rent-free, brainrot.
 - You explicitly critique VISUALS: spacing (padding/margins), color contrast, typography hierarchy, whitespace, layout consistency, responsiveness, visual clutter, and component alignment.
 - You HATE:
-  - Generic SaaS templates
+  - Generic ass templates
   - Overcrowded sections with zero breathing room
   - Tiny unreadable text
+  - Ugly gradients
   - Misaligned elements
   - Sticky navs blocking content
   - “Dribbble but worse” aesthetics
@@ -212,16 +473,26 @@ Important:
   `;
 
     // Build the content parts
-    const parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] = [{ text: promptText }];
+    const messages: any[] = [
+        { role: "system", content: systemInstruction },
+        { role: "user", content: [] }
+    ];
 
+    // Add image if available
     if (base64Image) {
-        parts.unshift({
-            inlineData: {
-                mimeType: "image/jpeg",
-                data: base64Image,
-            },
+        messages[1].content.push({
+            type: "image_url",
+            image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`
+            }
         });
     }
+
+    // Add text prompt
+    messages[1].content.push({
+        type: "text",
+        text: promptText
+    });
 
     let lastError: Error | null = null;
 
@@ -229,18 +500,20 @@ Important:
     for (const model of MODEL_FALLBACK_CHAIN) {
         try {
             console.log(`Trying model: ${model}`);
-            const response = await ai.models.generateContent({
+
+            const response = await openai.chat.completions.create({
                 model: model,
-                contents: [{ parts: parts }],
-                config: {
-                    tools: [{ googleSearch: {} }],
-                    systemInstruction: systemInstruction,
-                    temperature: 1.0,
-                },
+                messages: messages,
+                max_tokens: 2000,
+                temperature: 1.0,
+                response_format: { type: "json_object" },
             });
 
             // Parse the response
-            let text = response.text || "{}";
+            const content = response.choices[0]?.message?.content || "{}";
+            let text = content;
+
+            // Clean up the response if it's wrapped in markdown code blocks
             if (text.startsWith("```")) {
                 text = text.replace(/^```json\n?/, "").replace(/```$/, "");
             }
@@ -248,35 +521,31 @@ Important:
             let parsed;
             try {
                 parsed = JSON.parse(text);
-            } catch (parseError: unknown) {
+            } catch (error) {
                 console.error(`Failed to parse JSON from ${model}:`, text);
                 throw new Error("The AI returned invalid JSON. Trying next model...");
             }
 
-            // Extract Grounding Metadata
-            const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
-                ?.map((chunk) => {
-                    if (chunk.web?.title && chunk.web.uri) {
-                        return { title: chunk.web.title, uri: chunk.web.uri };
-                    }
-                    return null;
-                })
-                .filter((source): source is { title: string; uri: string } => source !== null) || [];
-
             console.log(`Successfully used model: ${model}`);
+
+            // For now, we'll return an empty sources array since we don't have web search capabilities
+            // with the OpenRouter API in the same way we did with Google's API
+            const sources: { title: string; uri: string }[] = [];
+
             return {
                 url,
                 ...parsed,
                 sources,
                 screenshot: base64Image ? `data:image/jpeg;base64,${base64Image}` : undefined,
                 modelUsed: model,  // Track which model was successful
+                remainingCredits,
             };
         } catch (error) {
             console.error(`Error with model ${model}:`, error);
             lastError = error as Error;
 
             // If we get a rate limit error (429), add a small delay before trying the next model
-            if (error && typeof error === 'object' && 'status' in error && error.status === 429) {
+            if (error && typeof error === 'object' && 'status' in error && (error as any).status === 429) {
                 console.log(`Rate limited on ${model}, waiting before next attempt...`);
                 await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
             }

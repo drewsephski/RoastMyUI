@@ -1,12 +1,17 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { RoastForm } from '@/components/RoastForm';
 import { RoastResult } from '@/components/RoastResult';
 import { LoadingState } from '@/components/LoadingState';
-import { Flame, MessageCircle, Repeat, Heart, BarChart2 } from 'lucide-react';
+import { Flame, MessageCircle, Repeat, Heart, BarChart2, Coins, Plus } from 'lucide-react';
 import Link from 'next/link';
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { getUserCredits, generateRoast } from './actions';
+import { PricingModal } from '@/components/PricingModal';
+import { PaymentSuccessHandler } from '@/components/PaymentSuccessHandler';
+import { Suspense } from 'react';
 
 interface RoastData {
   url: string;
@@ -15,15 +20,27 @@ interface RoastData {
   roast: string;
   shareText: string;
   strengths: string[];
-  weaknesses: string[];
   sources: { title: string; uri: string }[];
+  weaknesses: string[];
   screenshot?: string;
+  remainingCredits?: number;
 }
 
 const App: React.FC = () => {
   const [roastData, setRoastData] = useState<RoastData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
+
+  useEffect(() => {
+    getUserCredits().then(setCredits);
+  }, []);
+
+  const refreshCredits = async () => {
+    const latestCredits = await getUserCredits();
+    setCredits(latestCredits);
+  };
 
   const handleRoastRequest = async (url: string) => {
     setIsLoading(true);
@@ -31,24 +48,19 @@ const App: React.FC = () => {
     setRoastData(null);
 
     try {
-      const response = await fetch('/api/roast', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate roast');
-      }
-
-      const data = await response.json();
+      const data = await generateRoast(url);
       setRoastData(data);
+      if (typeof data.remainingCredits === 'number') {
+        setCredits(data.remainingCredits);
+      }
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : "Gemini refused to roast this (it was too powerful or the API broke). Try again.");
+      const errorMessage = err instanceof Error ? err.message : "Gemini refused to roast this (it was too powerful or the API broke). Try again.";
+      setError(errorMessage);
+
+      if (errorMessage.includes("Insufficient credits")) {
+        setIsPricingOpen(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +85,29 @@ const App: React.FC = () => {
         <div className="flex items-center gap-2 cursor-pointer" onClick={handleReset}>
           <Flame className="w-5 h-5 md:w-6 md:h-6 text-rose-500" />
           <span className="font-bold text-base md:text-lg tracking-tight uppercase">Roast My UI</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <SignedIn>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-900 rounded-full border border-neutral-800">
+              <Coins className="w-4 h-4 text-yellow-500" />
+              <span className="text-sm font-mono text-neutral-300">{credits !== null ? credits : '...'} Credits</span>
+              <button
+                onClick={() => setIsPricingOpen(true)}
+                className="ml-2 p-1 hover:bg-neutral-800 rounded-full transition text-rose-500"
+                title="Buy Credits"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="px-4 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-neutral-200 transition">
+                Sign In
+              </button>
+            </SignInButton>
+          </SignedOut>
         </div>
       </header>
 
@@ -140,7 +175,7 @@ const App: React.FC = () => {
               {/* Card 2 */}
               <div className="bg-black border border-neutral-800 p-4 rounded-xl hover:border-neutral-700 transition duration-300 group text-left">
                 <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0 border border-neutral-700">
+                  <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center shrink-0 border border-neutral-700">
                     <span className="text-lg">🤡</span>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -164,7 +199,7 @@ const App: React.FC = () => {
               {/* Card 3 */}
               <div className="bg-black border border-neutral-800 p-4 rounded-xl hover:border-neutral-700 transition duration-300 group text-left">
                 <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0 border border-neutral-700">
+                  <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center shrink-0 border border-neutral-700">
                     <span className="text-lg">🗑️</span>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -192,7 +227,7 @@ const App: React.FC = () => {
       {/* Product Showcase Section */}
       <section className="w-full py-16 md:py-24 px-4 md:px-8 z-10 border-t border-white/10 relative">
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-b from-neutral-950 via-neutral-900 to-neutral-950 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
@@ -234,14 +269,14 @@ const App: React.FC = () => {
                   className="group relative px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(244,63,94,0.5)]"
                 >
                   <span className="relative z-10">Try It Now</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-rose-600 to-pink-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-linear-to-r from-rose-600 to-pink-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </button>
               </div>
             </div>
 
             {/* Right: Product Image */}
             <div className="order-1 lg:order-2 relative group">
-              <div className="absolute -inset-4 bg-gradient-to-r from-rose-500/20 to-purple-500/20 rounded-2xl blur-2xl opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
+              <div className="absolute -inset-4 bg-linear-to-r from-rose-500/20 to-purple-500/20 rounded-2xl blur-2xl opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
               <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl">
                 <Image
                   src="/product-image.png"
@@ -264,6 +299,15 @@ const App: React.FC = () => {
           <Link href="/privacy" className="text-rose-500 hover:underline">Privacy Policy</Link>
         </p>
       </footer>
+
+      <PricingModal isOpen={isPricingOpen} onClose={() => {
+        setIsPricingOpen(false);
+        refreshCredits(); // Refresh credits when modal closes
+      }} />
+
+      <Suspense fallback={null}>
+        <PaymentSuccessHandler onCreditsUpdated={(newCredits) => setCredits(newCredits)} />
+      </Suspense>
     </div>
   );
 };
