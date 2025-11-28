@@ -3,8 +3,6 @@
 "use server";
 
 import { OpenAI } from "openai";
-import puppeteerCore from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { users, transactions } from "@/db/schema";
@@ -211,12 +209,6 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
     try {
         console.log("Starting captureScreenshot for URL:", url);
         console.log("NODE_ENV:", process.env.NODE_ENV);
-        console.log("VERCEL:", process.env.VERCEL);
-        console.log("POLAR_ACCESS_TOKEN present:", !!process.env.POLAR_ACCESS_TOKEN);
-        console.log("NEXT_PUBLIC_APP_URL present:", !!process.env.NEXT_PUBLIC_APP_URL);
-        console.log("API_KEY present:", !!process.env.API_KEY);
-        console.log("OPENROUTER_API_KEY present:", !!process.env.OPENROUTER_API_KEY);
-
 
         // Normalize and validate URL
         const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
@@ -227,51 +219,68 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
             return null;
         }
 
-        let browser;
-        try {
-            if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
-                process.env.PUPPETEER_CACHE_DIR = '/tmp'; // Set cache directory for serverless environments
-                chromium.setGraphicsMode = false;
-                const executablePath = await chromium.executablePath();
-                console.log("Chromium executablePath:", executablePath);
-                console.log("Launching Chromium for production/Vercel...");
-                browser = await puppeteerCore.launch({
-                    args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-                    executablePath: executablePath,
-                    headless: true,
-                });
-            } else {
-                console.log("Launching local Puppeteer for development...");
-                const { default: puppeteer } = await import("puppeteer");
-                browser = await puppeteer.launch({
-                    headless: true,
-                    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-                });
+        // Use ScreenshotOne API in production, Puppeteer locally
+        if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+            console.log("Using ScreenshotOne API for production...");
+
+            const screenshotOneApiKey = process.env.SCREENSHOTONE_API_KEY;
+            if (!screenshotOneApiKey) {
+                console.error("SCREENSHOTONE_API_KEY not set, falling back to placeholder");
+                // Return a placeholder or throw error
+                throw new Error("Screenshot API key not configured");
             }
-            console.log("Browser launched successfully.");
-        } catch (launchError) {
-            console.error("Failed to launch browser:", launchError);
-            throw launchError; // Re-throw to be caught by the outer catch
-        }
 
-        const page = await browser.newPage();
-        await page.setViewport({ width: 1280, height: 800 });
-        await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+            // Build ScreenshotOne API URL
+            const apiUrl = new URL("https://api.screenshotone.com/take");
+            apiUrl.searchParams.set("access_key", screenshotOneApiKey);
+            apiUrl.searchParams.set("url", normalizedUrl);
+            apiUrl.searchParams.set("viewport_width", "1280");
+            apiUrl.searchParams.set("viewport_height", "800");
+            apiUrl.searchParams.set("device_scale_factor", "1");
+            apiUrl.searchParams.set("format", "jpg");
+            apiUrl.searchParams.set("image_quality", "80");
+            apiUrl.searchParams.set("block_ads", "true");
+            apiUrl.searchParams.set("block_cookie_banners", "true");
+            apiUrl.searchParams.set("block_banners_by_heuristics", "false");
+            apiUrl.searchParams.set("block_trackers", "true");
+            apiUrl.searchParams.set("delay", "0");
+            apiUrl.searchParams.set("timeout", "30");
 
-        try {
+            console.log("Fetching screenshot from ScreenshotOne API...");
+            const response = await fetch(apiUrl.toString());
+
+            if (!response.ok) {
+                console.error("ScreenshotOne API error:", response.status, response.statusText);
+                return null;
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            console.log(`Screenshot base64 size: ${base64.length} bytes`);
+            return base64;
+        } else {
+            // Local development: use Puppeteer
+            console.log("Launching local Puppeteer for development...");
+            const { default: puppeteer } = await import("puppeteer");
+            const browser = await puppeteer.launch({
+                headless: true,
+                args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            });
+
+            const page = await browser.newPage();
+            await page.setViewport({ width: 1280, height: 800 });
+            await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+
             console.log("Navigating to URL:", normalizedUrl);
             await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 30000 });
             console.log("Navigation successful.");
-        } catch (gotoError) {
-            console.error("Failed to navigate to URL:", gotoError);
-            throw gotoError; // Re-throw to be caught by the outer catch
-        }
 
-        const base64 = await page.screenshot({ encoding: "base64", type: "jpeg", quality: 80 });
-        console.log(`Screenshot base64 size: ${base64 ? base64.length : 0} bytes`);
-        await browser.close();
-        console.log("Browser closed.");
-        return base64 as string;
+            const base64 = await page.screenshot({ encoding: "base64", type: "jpeg", quality: 80 });
+            console.log(`Screenshot base64 size: ${base64 ? base64.length : 0} bytes`);
+            await browser.close();
+            console.log("Browser closed.");
+            return base64 as string;
+        }
     } catch (error) {
         console.error("Screenshot capture failed:", error);
         return null;
