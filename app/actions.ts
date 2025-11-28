@@ -231,11 +231,12 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
         try {
             if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
                 process.env.PUPPETEER_CACHE_DIR = '/tmp'; // Set cache directory for serverless environments
+                chromium.setGraphicsMode = false;
                 const executablePath = await chromium.executablePath();
                 console.log("Chromium executablePath:", executablePath);
                 console.log("Launching Chromium for production/Vercel...");
                 browser = await puppeteerCore.launch({
-                    args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+                    args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
                     executablePath: executablePath,
                     headless: true,
                 });
@@ -256,7 +257,7 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
         const page = await browser.newPage();
         await page.setViewport({ width: 1280, height: 800 });
         await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        
+
         try {
             console.log("Navigating to URL:", normalizedUrl);
             await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 30000 });
@@ -508,40 +509,40 @@ Now generate a JSON object with this exact structure:
     }
 `;
 
-// Define message types compatible with OpenAI's API
-type MessageContent = 
-  | { type: 'text'; text: string }
-  | { type: 'image_url'; image_url: { url: string } };
+    // Define message types compatible with OpenAI's API
+    type MessageContent =
+        | { type: 'text'; text: string }
+        | { type: 'image_url'; image_url: { url: string } };
 
-// Update the Message type to match OpenAI's ChatCompletionMessageParam
-type Message = 
-  | { role: 'system'; content: string }
-  | { role: 'user'; content: string | MessageContent[] }
-  | { role: 'assistant'; content: string };
+    // Update the Message type to match OpenAI's ChatCompletionMessageParam
+    type Message =
+        | { role: 'system'; content: string }
+        | { role: 'user'; content: string | MessageContent[] }
+        | { role: 'assistant'; content: string };
 
-// Build the content parts
-const messages: Message[] = [
-    { role: 'system', content: systemInstruction },
-    { 
-        role: 'user', 
-        content: [
-            { type: 'text', text: promptText }
-        ] as MessageContent[]
+    // Build the content parts
+    const messages: Message[] = [
+        { role: 'system', content: systemInstruction },
+        {
+            role: 'user',
+            content: [
+                { type: 'text', text: promptText }
+            ] as MessageContent[]
+        }
+    ];
+
+    // Add image if available
+    if (base64Image) {
+        const userMessage = messages[1];
+        if (Array.isArray(userMessage.content)) {
+            userMessage.content.push({
+                type: 'image_url',
+                image_url: {
+                    url: `data:image/jpeg;base64,${base64Image}`
+                }
+            });
+        }
     }
-];
-
-// Add image if available
-if (base64Image) {
-    const userMessage = messages[1];
-    if (Array.isArray(userMessage.content)) {
-        userMessage.content.push({
-            type: 'image_url',
-            image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`
-            }   
-        });
-    }
-}
 
     let lastError: Error | null = null;
 
