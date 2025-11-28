@@ -47,16 +47,16 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
         <div className="w-full max-w-5xl mx-auto perspective-1000 animate-in slide-in-from-bottom-10 fade-in duration-700">
 
             {/* Roast Card Container */}
-            <div className="bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative flex flex-col md:flex-row ring-1 ring-white/5">
+            <div className="bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative flex flex-col md:flex-row ring-1 ring-white/5">
 
                 {/* Left Col: Visuals & Score */}
-                <div className="w-full md:w-[40%] bg-black/20 border-r border-white/5 flex flex-col relative">
+                <div className="w-full md:w-[40%] bg-black/20 border-b md:border-b-0 md:border-r border-white/5 flex flex-col relative">
                     {/* Mac Header */}
-                    <div className="bg-white/5 p-4 border-b border-white/5 flex items-center gap-2 z-10 backdrop-blur-sm">
-                        <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                        <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
-                        <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
-                        <div className="ml-2 font-mono text-[10px] text-neutral-500 truncate">{data.url}</div>
+                    <div className="bg-white/5 p-3 sm:p-4 border-b border-white/5 flex items-center gap-2 z-10 backdrop-blur-sm">
+                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
+                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+                        <div className="ml-2 font-mono text-[9px] sm:text-[10px] text-neutral-500 truncate">{data.url}</div>
                     </div>
 
                     {/* Screenshot Preview */}
@@ -68,13 +68,13 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                                     alt="Website Screenshot"
                                     className="w-full h-full object-cover object-top opacity-60 group-hover:opacity-100 transition duration-500 grayscale group-hover:grayscale-0"
                                 />
-                                <div className="absolute top-2 right-2 flex gap-2">
-                                    <div className="bg-black/80 text-white text-[10px] px-2 py-1 rounded font-mono flex items-center gap-1 border border-white/10">
-                                        <Eye className="w-3 h-3" /> VISUAL SCAN
+                                <div className="absolute top-2 right-2 flex gap-1.5 sm:gap-2">
+                                    <div className="bg-black/80 text-white text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-1 rounded font-mono flex items-center gap-1 border border-white/10">
+                                        <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> VISUAL SCAN
                                     </div>
-                                    <div className={`text-[10px] px-2 py-1 rounded font-mono font-bold border ${data.analysisType === 'hero'
-                                            ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                                            : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                                    <div className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-1 rounded font-mono font-bold border ${data.analysisType === 'hero'
+                                        ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                        : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                                         }`}>
                                         {data.analysisType === 'hero' ? 'HERO' : 'FULL PAGE'}
                                     </div>
@@ -87,17 +87,17 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                         )}
                         {/* Score Overlay */}
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-6 rounded-2xl transform rotate-[-5deg]">
-                                <div className={`text-6xl font-bold tracking-tighter ${getScoreColor(data.score)} drop-shadow-2xl`}>
+                            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-4 sm:p-6 rounded-xl sm:rounded-2xl transform rotate-[-5deg]">
+                                <div className={`text-5xl sm:text-6xl font-bold tracking-tighter ${getScoreColor(data.score)} drop-shadow-2xl`}>
                                     {data.score}
                                 </div>
-                                <div className="text-center text-xs font-mono text-neutral-500 mt-1 uppercase">Total L</div>
+                                <div className="text-center text-[10px] sm:text-xs font-mono text-neutral-500 mt-1 uppercase">Total L</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Stats */}
-                    <div className="p-6 grid grid-cols-2 gap-4 flex-grow bg-gradient-to-b from-neutral-900/50 to-neutral-950/50">
+                    <div className="p-4 sm:p-6 grid grid-cols-2 gap-3 sm:gap-4 flex-grow bg-gradient-to-b from-neutral-900/50 to-neutral-950/50">
                         <div className="space-y-1">
                             <h4 className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Design Integrity</h4>
                             <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
@@ -120,39 +120,39 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                 </div>
 
                 {/* Right Col: Roast Content */}
-                <div className="w-full md:w-[60%] p-6 md:p-10 flex flex-col bg-transparent">
-                    <h2 className="text-2xl md:text-3xl font-bold uppercase leading-none mb-4 md:mb-6 text-white tracking-tight">
+                <div className="w-full md:w-[60%] p-4 sm:p-6 md:p-10 flex flex-col bg-transparent">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold uppercase leading-none mb-3 sm:mb-4 md:mb-6 text-white tracking-tight">
                         &quot;{data.tagline}&quot;
                     </h2>
 
-                    <p className="font-mono text-neutral-300 leading-relaxed text-xs md:text-base border-l-2 border-rose-500 pl-4 mb-6 md:mb-8">
+                    <p className="font-mono text-neutral-300 leading-relaxed text-xs sm:text-sm md:text-base border-l-2 border-rose-500 pl-3 sm:pl-4 mb-4 sm:mb-6 md:mb-8">
                         {data.roast}
                     </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                        <div className="p-4 bg-red-950/20 border border-red-500/20 rounded">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                        <div className="p-3 sm:p-4 bg-red-950/20 border border-red-500/20 rounded">
                             <h4 className="text-red-400 text-xs font-bold uppercase mb-2">Major L&apos;s</h4>
-                            <ul className="text-xs text-neutral-400 space-y-1">
+                            <ul className="text-[11px] sm:text-xs text-neutral-400 space-y-1">
                                 {data.weaknesses.map((w, i) => <li key={i}>- {w}</li>)}
                             </ul>
                         </div>
-                        <div className="p-4 bg-green-950/20 border border-green-500/20 rounded">
+                        <div className="p-3 sm:p-4 bg-green-950/20 border border-green-500/20 rounded">
                             <h4 className="text-green-400 text-xs font-bold uppercase mb-2">Rare W&apos;s</h4>
-                            <ul className="text-xs text-neutral-400 space-y-1">
+                            <ul className="text-[11px] sm:text-xs text-neutral-400 space-y-1">
                                 {data.strengths.map((s, i) => <li key={i}>- {s}</li>)}
                             </ul>
                         </div>
                     </div>
 
                     {/* New Sections: Visual Crimes & Best/Worst */}
-                    <div className="space-y-4 mb-8">
+                    <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                         {data.visualCrimes && data.visualCrimes.length > 0 && (
-                            <div className="p-4 bg-neutral-950/40 border border-white/5 rounded">
+                            <div className="p-3 sm:p-4 bg-neutral-950/40 border border-white/5 rounded">
                                 <h4 className="text-neutral-500 text-xs font-bold uppercase mb-2 flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                                     Visual Crimes Detected
                                 </h4>
-                                <ul className="text-xs text-neutral-300 space-y-1 font-mono">
+                                <ul className="text-[11px] sm:text-xs text-neutral-300 space-y-1 font-mono">
                                     {data.visualCrimes.map((crime, i) => (
                                         <li key={i} className="flex items-start gap-2">
                                             <span className="text-red-500/50">x</span> {crime}
@@ -162,33 +162,33 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             {data.bestPart && (
                                 <div className="p-3 bg-white/5 border border-white/5 rounded">
                                     <span className="text-[10px] text-neutral-500 uppercase font-bold block mb-1">Surprisingly Good</span>
-                                    <p className="text-xs text-neutral-300">{data.bestPart}</p>
+                                    <p className="text-[11px] sm:text-xs text-neutral-300">{data.bestPart}</p>
                                 </div>
                             )}
                             {data.worstPart && (
                                 <div className="p-3 bg-red-500/5 border border-red-500/10 rounded">
                                     <span className="text-[10px] text-red-400/70 uppercase font-bold block mb-1">Absolute Worst</span>
-                                    <p className="text-xs text-neutral-300">{data.worstPart}</p>
+                                    <p className="text-[11px] sm:text-xs text-neutral-300">{data.worstPart}</p>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="mt-auto space-y-4">
-                        <div className="flex gap-3">
+                    <div className="mt-auto space-y-3 sm:space-y-4">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                             <button
                                 onClick={handleShare}
-                                className="flex-1 bg-white text-black hover:bg-neutral-200 transition px-4 py-3 rounded font-bold uppercase text-xs tracking-wider flex items-center justify-center gap-2"
+                                className="flex-1 bg-white text-black hover:bg-neutral-200 transition px-4 py-3.5 sm:py-3 rounded font-bold uppercase text-xs tracking-wider flex items-center justify-center gap-2 active:scale-95"
                             >
                                 <Share2 className="w-4 h-4" /> Share
                             </button>
                             <button
                                 onClick={handleCopy}
-                                className="flex-1 bg-transparent border border-neutral-700 text-white hover:bg-neutral-800 transition px-4 py-3 rounded font-bold uppercase text-xs tracking-wider flex items-center justify-center gap-2"
+                                className="flex-1 bg-transparent border border-neutral-700 text-white hover:bg-neutral-800 transition px-4 py-3.5 sm:py-3 rounded font-bold uppercase text-xs tracking-wider flex items-center justify-center gap-2 active:scale-95"
                             >
                                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                 {copied ? "Copied" : "Copy"}
@@ -196,10 +196,10 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                         </div>
 
                         {data.sources && data.sources.length > 0 && (
-                            <div className="flex flex-wrap gap-2 items-center pt-4 border-t border-neutral-800/50">
+                            <div className="flex flex-wrap gap-2 items-center pt-3 sm:pt-4 border-t border-neutral-800/50">
                                 <span className="text-[10px] text-neutral-600 font-mono uppercase w-full sm:w-auto">Sources:</span>
                                 {data.sources.slice(0, 2).map((source, idx) => (
-                                    <a key={idx} href={source.uri} target="_blank" rel="noreferrer" className="text-[10px] text-neutral-500 hover:text-rose-500 transition truncate max-w-[150px] block">
+                                    <a key={idx} href={source.uri} target="_blank" rel="noreferrer" className="text-[10px] text-neutral-500 hover:text-rose-500 active:text-rose-400 transition truncate max-w-[150px] block">
                                         {source.title}
                                     </a>
                                 ))}
@@ -209,10 +209,10 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                 </div>
             </div>
 
-            <div className="text-center mt-8">
+            <div className="text-center mt-6 sm:mt-8">
                 <button
                     onClick={onReset}
-                    className="text-neutral-500 hover:text-rose-500 transition flex items-center gap-2 mx-auto font-mono text-sm uppercase tracking-widest hover:underline decoration-rose-500 underline-offset-4"
+                    className="text-neutral-500 hover:text-rose-500 active:text-rose-400 transition flex items-center gap-2 mx-auto font-mono text-sm uppercase tracking-widest hover:underline decoration-rose-500 underline-offset-4 active:scale-95"
                 >
                     <RefreshCcw className="w-4 h-4" /> Roast Another
                 </button>

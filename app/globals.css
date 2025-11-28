@@ -45,6 +45,8 @@
 html {
   scroll-behavior: smooth;
   overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -52,6 +54,7 @@ body {
   background-color: #0a0a0a;
   color: #f0f0f0;
   overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .font-mono {
@@ -94,6 +97,34 @@ body {
 
 .transform-style-3d {
   transform-style: preserve-3d;
+}
+
+/* Mobile-specific enhancements */
+@media (max-width: 640px) {
+
+  /* Improve text rendering on mobile */
+  body {
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Ensure minimum touch target size */
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better text contrast on mobile */
+  h1,
+  h2,
+  h3 {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Prevent text size adjustment on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
 }
 
 :root {
