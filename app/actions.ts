@@ -215,7 +215,6 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
         console.log("POLAR_ACCESS_TOKEN present:", !!process.env.POLAR_ACCESS_TOKEN);
         console.log("NEXT_PUBLIC_APP_URL present:", !!process.env.NEXT_PUBLIC_APP_URL);
         console.log("API_KEY present:", !!process.env.API_KEY);
-        console.log("GEMINI_API_KEY present:", !!process.env.GEMINI_API_KEY);
         console.log("OPENROUTER_API_KEY present:", !!process.env.OPENROUTER_API_KEY);
 
 
@@ -231,8 +230,7 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
         let browser;
         try {
             if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
-                // Explicitly set CHROMIUM_PATH for Vercel
-                process.env.CHROMIUM_PATH = process.env.CHROMIUM_PATH || '/var/task/node_modules/@sparticuz/chromium/bin';
+                process.env.PUPPETEER_CACHE_DIR = '/tmp'; // Set cache directory for serverless environments
                 const executablePath = await chromium.executablePath();
                 console.log("Chromium executablePath:", executablePath);
                 console.log("Launching Chromium for production/Vercel...");
