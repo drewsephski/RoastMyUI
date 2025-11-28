@@ -208,6 +208,16 @@ export const verifyPurchase = async (): Promise<{ creditsAdded: number; newBalan
 
 const captureScreenshot = async (url: string): Promise<string | null> => {
     try {
+        console.log("Starting captureScreenshot for URL:", url);
+        console.log("NODE_ENV:", process.env.NODE_ENV);
+        console.log("VERCEL:", process.env.VERCEL);
+        console.log("POLAR_ACCESS_TOKEN present:", !!process.env.POLAR_ACCESS_TOKEN);
+        console.log("NEXT_PUBLIC_APP_URL present:", !!process.env.NEXT_PUBLIC_APP_URL);
+        console.log("API_KEY present:", !!process.env.API_KEY);
+        console.log("GEMINI_API_KEY present:", !!process.env.GEMINI_API_KEY);
+        console.log("OPENROUTER_API_KEY present:", !!process.env.OPENROUTER_API_KEY);
+
+
         // Normalize and validate URL
         const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
         try {
@@ -218,29 +228,45 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
         }
 
         let browser;
-        if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
-            // Production: Use @sparticuz/chromium
-            browser = await puppeteerCore.launch({
-                args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
-                executablePath: await chromium.executablePath(),
-                headless: true,
-            });
-        } else {
-            // Development: Use local puppeteer
-            const { default: puppeteer } = await import("puppeteer");
-            browser = await puppeteer.launch({
-                headless: true,
-                args: ["--no-sandbox", "--disable-setuid-sandbox"],
-            });
+        try {
+            if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+                console.log("Launching Chromium for production/Vercel...");
+                browser = await puppeteerCore.launch({
+                    args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+                    executablePath: await chromium.executablePath(),
+                    headless: true,
+                });
+            } else {
+                console.log("Launching local Puppeteer for development...");
+                const { default: puppeteer } = await import("puppeteer");
+                browser = await puppeteer.launch({
+                    headless: true,
+                    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+                });
+            }
+            console.log("Browser launched successfully.");
+        } catch (launchError) {
+            console.error("Failed to launch browser:", launchError);
+            throw launchError; // Re-throw to be caught by the outer catch
         }
 
         const page = await browser.newPage();
         await page.setViewport({ width: 1280, height: 800 });
         await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 30000 });
+        
+        try {
+            console.log("Navigating to URL:", normalizedUrl);
+            await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 30000 });
+            console.log("Navigation successful.");
+        } catch (gotoError) {
+            console.error("Failed to navigate to URL:", gotoError);
+            throw gotoError; // Re-throw to be caught by the outer catch
+        }
+
         const base64 = await page.screenshot({ encoding: "base64", type: "jpeg", quality: 80 });
         console.log(`Screenshot base64 size: ${base64 ? base64.length : 0} bytes`);
         await browser.close();
+        console.log("Browser closed.");
         return base64 as string;
     } catch (error) {
         console.error("Screenshot capture failed:", error);
