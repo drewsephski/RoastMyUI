@@ -15,6 +15,8 @@ const spaceMono = Space_Mono({
   weight: ["400", "700"],
 });
 
+export const maxDuration = 60;
+
 export const metadata: Metadata = {
   title: 'Roast My UI',
   description: 'Get your UI roasted by a savage Gen Z AI',
