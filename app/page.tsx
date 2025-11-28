@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -69,15 +70,29 @@ const App: React.FC = () => {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-900/20 blur-[100px] rounded-full pointer-events-none" />
 
-      <header className="w-full p-3 sm:p-4 md:p-6 flex justify-between items-center z-50 border-b border-white/5 backdrop-blur-xl sticky top-0 bg-neutral-950/80 supports-[backdrop-filter]:bg-neutral-950/50">
+      <header className="w-full p-3 sm:p-4 md:p-6 flex justify-between items-center z-50 border-b border-white/5 backdrop-blur-xl sticky top-0 bg-neutral-950/80 supports-backdrop-filter:bg-neutral-950/50">
         <div className="flex items-center gap-2 cursor-pointer" onClick={handleReset}>
           <Flame className="w-6 h-6 md:w-6 md:h-6 text-rose-500" />
           <span className="font-bold text-sm sm:text-base md:text-lg tracking-tight uppercase">Roast My UI</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+          <a 
+            href="https://www.producthunt.com/products/roast-my-ui?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-roast&#0045;my&#0045;ui" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hidden sm:block"
+          >
+            <img 
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1043582&theme=light&t=1764340623680" 
+              alt="Roast&#0032;My&#0032;UI - Paste&#0032;a&#0032;URL&#0032;→&#0032;instant&#0032;AI&#0032;roast&#0032;with&#0032;actionable&#0032;fixes | Product Hunt" 
+              style={{ width: '200px', height: '43px' }} 
+              width="200" 
+              height="43" 
+            />
+          </a>
           <SignedIn>
             <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 md:px-3 py-1.5 bg-neutral-900/80 backdrop-blur-sm rounded-full border border-neutral-800/80 shadow-lg shadow-black/20">
-              <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 flex-shrink-0" />
+              <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 shrink-0" />
               <span className="text-xs sm:text-sm font-mono font-semibold text-white min-w-[20px] sm:min-w-[24px] text-center">{credits !== null ? credits : '...'}</span>
               <button
                 onClick={() => setIsPricingOpen(true)}
@@ -100,7 +115,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main id="hero-section" className="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 z-10 max-w-5xl mx-auto w-full mt-16 sm:mt-20 md:mt-24">
+      <main id="hero-section" className="grow flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 z-10 max-w-5xl mx-auto w-full mt-16 sm:mt-20 md:mt-24">
         {isLoading ? (
           <LoadingState />
         ) : roastData ? (
@@ -123,7 +138,7 @@ const App: React.FC = () => {
                 }}>
                   YOUR UI IS
                 </span>
-                <span className="block mt-2 sm:mt-1 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-rose-500 to-purple-500 drop-shadow-[0_0_40px_rgba(244,63,94,0.6)] filter brightness-125" style={{
+                <span className="block mt-2 sm:mt-1 text-transparent bg-clip-text bg-linear-to-r from-rose-400 via-rose-500 to-purple-500 drop-shadow-[0_0_40px_rgba(244,63,94,0.6)] filter brightness-125" style={{
                   WebkitTextStroke: '1px rgba(244,63,94,0.3)',
                   textShadow: '0 0 30px rgba(244,63,94,0.4), 0 0 15px rgba(244,63,94,0.3)'
                 }}>
@@ -257,16 +272,16 @@ const App: React.FC = () => {
             {/* Right: Product Image */}
             <div className="order-1 lg:order-2 relative group perspective-1000">
               {/* Glow Effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 to-purple-600 rounded-2xl blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+              <div className="absolute -inset-1 bg-linear-to-r from-rose-500 to-purple-600 rounded-2xl blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
 
               {/* Main Image Container */}
               <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_80px_-20px_rgba(244,63,94,0.3)] transition-all duration-700 transform group-hover:scale-[1.02] group-hover:rotate-1 bg-neutral-900">
 
                 {/* Shine Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out z-20 pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out z-20 pointer-events-none" />
 
                 <Image
-                  src="/product-image.png"
+                  src="/product-image-1.png"
                   alt="Roast My UI Product Screenshot"
                   width={1200}
                   height={800}
