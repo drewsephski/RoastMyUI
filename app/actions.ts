@@ -231,6 +231,8 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
         let browser;
         try {
             if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+                // Explicitly set CHROMIUM_PATH for Vercel
+                process.env.CHROMIUM_PATH = process.env.CHROMIUM_PATH || '/var/task/node_modules/@sparticuz/chromium/bin';
                 const executablePath = await chromium.executablePath();
                 console.log("Chromium executablePath:", executablePath);
                 console.log("Launching Chromium for production/Vercel...");
