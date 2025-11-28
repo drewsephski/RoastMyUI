@@ -21,15 +21,9 @@ export const metadata: Metadata = {
   title: 'Roast My UI',
   description: 'Get your UI roasted by a savage Gen Z AI',
   icons: {
-    icon: [
-      { url: '/icons/icon-16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icons/icon-48.png', sizes: '48x48', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/icons/icon-128.png', sizes: '128x128', type: 'image/png' },
-    ],
-    shortcut: '/icons/icon-32.png',
+    icon: '/roast.png',
+    shortcut: '/roast.png',
+    apple: '/roast.png',
   },
   openGraph: {
     title: 'Roast My UI',
@@ -56,13 +50,13 @@ export default function RootLayout({
         <head>
           <link
             rel="icon"
-            href="/icons/icon-32.png"
+            href="/roast.png"
             type="image/png"
-            sizes="32x32"
+            sizes="any"
           />
           <link
             rel="apple-touch-icon"
-            href="/icons/icon-128.png"
+            href="/roast.png"
           />
         </head>
         <body className="font-sans antialiased bg-background text-foreground">
