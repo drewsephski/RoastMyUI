@@ -35,6 +35,7 @@ export interface RoastData {
     screenshot?: string;
     modelUsed?: string;
     remainingCredits: number;
+    analysisType: 'hero' | 'full-page';
 }
 
 export const getUserCredits = async () => {
@@ -205,7 +206,7 @@ export const verifyPurchase = async (): Promise<{ creditsAdded: number; newBalan
     }
 };
 
-const captureScreenshot = async (url: string): Promise<string | null> => {
+const captureScreenshot = async (url: string, fullPage: boolean = false): Promise<string | null> => {
     try {
         console.log("Starting captureScreenshot for URL:", url);
         console.log("NODE_ENV:", process.env.NODE_ENV);
@@ -246,6 +247,14 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
             apiUrl.searchParams.set("delay", "0");
             apiUrl.searchParams.set("timeout", "30");
 
+            // Full page screenshot if requested
+            if (fullPage) {
+                apiUrl.searchParams.set("full_page", "true");
+                apiUrl.searchParams.set("full_page_scroll", "true");
+                apiUrl.searchParams.set("full_page_scroll_delay", "300");
+                apiUrl.searchParams.set("full_page_max_height", "10000");
+            }
+
             console.log("Fetching screenshot from ScreenshotOne API...");
             const response = await fetch(apiUrl.toString());
 
@@ -275,7 +284,12 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
             await page.goto(normalizedUrl, { waitUntil: "networkidle0", timeout: 30000 });
             console.log("Navigation successful.");
 
-            const base64 = await page.screenshot({ encoding: "base64", type: "jpeg", quality: 80 });
+            const base64 = await page.screenshot({
+                encoding: "base64",
+                type: "jpeg",
+                quality: 80,
+                fullPage: fullPage
+            });
             console.log(`Screenshot base64 size: ${base64 ? base64.length : 0} bytes`);
             await browser.close();
             console.log("Browser closed.");
@@ -293,7 +307,7 @@ const MODEL_FALLBACK_CHAIN = [
     "anthropic/claude-3-haiku",     // Fallback: Reliable vision model
 ];
 
-export const generateRoast = async (url: string): Promise<RoastData> => {
+export const generateRoast = async (url: string, analysisType: 'hero' | 'full-page' = 'hero'): Promise<RoastData> => {
     const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
         throw new Error("API_KEY is not defined");
@@ -306,8 +320,8 @@ export const generateRoast = async (url: string): Promise<RoastData> => {
     }
 
     // 2. Lazy Initialization & Credit Check
-    // We'll try to deduct 1 credit. If the user doesn't exist, we create them with 3 credits (minus 1 for this roast = 2).
-    // If they exist but have 0 credits, the update will return 0 rows.
+    // Deduct credits based on analysis type: 1 for hero, 3 for full-page
+    const creditsToDeduct = analysisType === 'full-page' ? 3 : 1;
 
     let remainingCredits = 0;
 
@@ -317,11 +331,16 @@ export const generateRoast = async (url: string): Promise<RoastData> => {
     });
 
     if (!existingUser) {
-        // Create user with 3 credits, deduct 1 immediately -> 2 credits
+        // Create user with 3 credits, deduct credits immediately
+        const initialCredits = 3 - creditsToDeduct;
+        if (initialCredits < 0) {
+            throw new Error("Insufficient credits. Please purchase more to continue roasting.");
+        }
+
         const [newUser] = await db.insert(users).values({
             clerkId: user.id,
             email: user.emailAddresses[0].emailAddress,
-            credits: 2, // 3 - 1
+            credits: initialCredits,
         }).returning();
 
         // Log initial grant
@@ -329,26 +348,26 @@ export const generateRoast = async (url: string): Promise<RoastData> => {
             userId: newUser.id,
             amount: 3,
             type: "INITIAL_GRANT",
-            orderId: crypto.randomUUID(), // Add a UUID for initial grants, since there's no polar order.id
-            polarEventId: null, // Explicitly set to null for non-Polar events
+            orderId: crypto.randomUUID(),
+            polarEventId: null,
         });
 
         // Log spend
         await db.insert(transactions).values({
             userId: newUser.id,
-            amount: -1,
+            amount: -creditsToDeduct,
             type: "ROAST_SPEND",
-            orderId: crypto.randomUUID(), // Add a UUID for roast spends, since there's no polar order.id
-            polarEventId: null, // Explicitly set to null for non-Polar events
+            orderId: crypto.randomUUID(),
+            polarEventId: null,
         });
 
-        remainingCredits = 2;
+        remainingCredits = initialCredits;
     } else {
         // Atomic deduction
         const [updatedUser] = await db
             .update(users)
-            .set({ credits: sql`${users.credits} - 1` })
-            .where(sql`${users.clerkId} = ${user.id} AND ${users.credits} > 0`)
+            .set({ credits: sql`${users.credits} - ${creditsToDeduct}` })
+            .where(sql`${users.clerkId} = ${user.id} AND ${users.credits} >= ${creditsToDeduct}`)
             .returning({ credits: users.credits, id: users.id });
 
         if (!updatedUser) {
@@ -360,10 +379,10 @@ export const generateRoast = async (url: string): Promise<RoastData> => {
         // Log spend
         await db.insert(transactions).values({
             userId: updatedUser.id,
-            amount: -1,
+            amount: -creditsToDeduct,
             type: "ROAST_SPEND",
-            orderId: crypto.randomUUID(), // Add a UUID for roast spends, since there's no polar order.id
-            polarEventId: null, // Explicitly set to null for non-Polar events
+            orderId: crypto.randomUUID(),
+            polarEventId: null,
         });
     }
 
@@ -377,7 +396,7 @@ export const generateRoast = async (url: string): Promise<RoastData> => {
         dangerouslyAllowBrowser: true
     });
 
-    const base64Image = await captureScreenshot(url);
+    const base64Image = await captureScreenshot(url, analysisType === 'full-page');
 
     if (!base64Image) {
         throw new Error("Failed to capture screenshot. Cannot roast without visual evidence.");
@@ -598,6 +617,7 @@ Now generate a JSON object with this exact structure:
                 screenshot: base64Image ? `data:image/jpeg;base64,${base64Image}` : undefined,
                 modelUsed: model,  // Track which model was successful
                 remainingCredits,
+                analysisType,
             };
         } catch (error) {
             console.error(`Error with model ${model}:`, error);

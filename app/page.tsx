@@ -30,13 +30,13 @@ const App: React.FC = () => {
     setCredits(latestCredits);
   };
 
-  const handleRoastRequest = async (url: string) => {
+  const handleRoastRequest = async (url: string, analysisType: 'hero' | 'full-page') => {
     setIsLoading(true);
     setError(null);
     setRoastData(null);
 
     try {
-      const data = await generateRoast(url);
+      const data = await generateRoast(url, analysisType);
       setRoastData(data);
       if (typeof data.remainingCredits === 'number') {
         setCredits(data.remainingCredits);

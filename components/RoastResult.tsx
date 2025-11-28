@@ -15,6 +15,7 @@ interface RoastData {
     worstPart: string;
     sources: { title: string; uri: string }[];
     screenshot?: string;
+    analysisType: 'hero' | 'full-page';
 }
 
 interface RoastResultProps {
@@ -67,8 +68,16 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
                                     alt="Website Screenshot"
                                     className="w-full h-full object-cover object-top opacity-60 group-hover:opacity-100 transition duration-500 grayscale group-hover:grayscale-0"
                                 />
-                                <div className="absolute top-2 right-2 bg-black/80 text-white text-[10px] px-2 py-1 rounded font-mono flex items-center gap-1 border border-white/10">
-                                    <Eye className="w-3 h-3" /> VISUAL SCAN
+                                <div className="absolute top-2 right-2 flex gap-2">
+                                    <div className="bg-black/80 text-white text-[10px] px-2 py-1 rounded font-mono flex items-center gap-1 border border-white/10">
+                                        <Eye className="w-3 h-3" /> VISUAL SCAN
+                                    </div>
+                                    <div className={`text-[10px] px-2 py-1 rounded font-mono font-bold border ${data.analysisType === 'hero'
+                                            ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                            : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                                        }`}>
+                                        {data.analysisType === 'hero' ? 'HERO' : 'FULL PAGE'}
+                                    </div>
                                 </div>
                             </>
                         ) : (
