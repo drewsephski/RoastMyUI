@@ -11,6 +11,7 @@ import { users, transactions } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { Polar } from "@polar-sh/sdk";
 
+
 const polar = new Polar({
     accessToken: process.env.POLAR_ACCESS_TOKEN!,
     server: "production", // Use 'production' in prod
@@ -230,10 +231,12 @@ const captureScreenshot = async (url: string): Promise<string | null> => {
         let browser;
         try {
             if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+                const executablePath = await chromium.executablePath();
+                console.log("Chromium executablePath:", executablePath);
                 console.log("Launching Chromium for production/Vercel...");
                 browser = await puppeteerCore.launch({
                     args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
-                    executablePath: await chromium.executablePath(),
+                    executablePath: executablePath,
                     headless: true,
                 });
             } else {
