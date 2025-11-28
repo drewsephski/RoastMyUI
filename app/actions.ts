@@ -112,7 +112,7 @@ export const createCheckout = async (plan: '15_CREDITS' | '40_CREDITS') => {
     try {
         const result = await polar.checkouts.create({
             products: [productId],
-            successUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://wan-saccharolytic-rufina.ngrok-free.dev'}/?payment=success&amount=${plan === '15_CREDITS' ? 15 : 40}`,
+            successUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://roast-my-ui.vercel.app'}/?payment=success&amount=${plan === '15_CREDITS' ? 15 : 40}`,
             metadata: {
                 userId: userId,
             },
