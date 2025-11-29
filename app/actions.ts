@@ -5,8 +5,8 @@
 import { OpenAI } from "openai";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
-import { users, transactions } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { users, transactions, roasts } from "@/db/schema";
+import { eq, sql, desc } from "drizzle-orm";
 import { Polar } from "@polar-sh/sdk";
 
 
@@ -325,6 +325,7 @@ export const generateRoast = async (url: string, analysisType: 'hero' | 'full-pa
     const creditsToDeduct = analysisType === 'full-page' ? 3 : 1;
 
     let remainingCredits = 0;
+    let dbUserId: number;
 
     // Check if user exists
     const existingUser = await db.query.users.findFirst({
@@ -363,6 +364,7 @@ export const generateRoast = async (url: string, analysisType: 'hero' | 'full-pa
         });
 
         remainingCredits = initialCredits;
+        dbUserId = newUser.id;
     } else {
         // Atomic deduction
         const [updatedUser] = await db
@@ -376,6 +378,7 @@ export const generateRoast = async (url: string, analysisType: 'hero' | 'full-pa
         }
 
         remainingCredits = updatedUser.credits;
+        dbUserId = updatedUser.id;
 
         // Log spend
         await db.insert(transactions).values({
@@ -619,6 +622,24 @@ Now generate a JSON object with this exact structure:
             // with the Op enR outer API in the same way we did with Google's API
             const sources: { title: string; uri: string }[] = [];
 
+            // Save roast to database
+            await db.insert(roasts).values({
+                userId: dbUserId,
+                url: url,
+                score: parsed.score.toString(),
+                tagline: parsed.tagline,
+                roast: parsed.roast,
+                shareText: parsed.shareText,
+                strengths: parsed.strengths,
+                weaknesses: parsed.weaknesses,
+                visualCrimes: parsed.visualCrimes,
+                bestPart: parsed.bestPart,
+                worstPart: parsed.worstPart,
+                screenshot: base64Image ? `data:image/jpeg;base64,${base64Image}` : null,
+                modelUsed: model,
+                analysisType: analysisType,
+            });
+
             return {
                 url,
                 ...parsed,
@@ -646,4 +667,43 @@ Now generate a JSON object with this exact structure:
     // If we get here, all models failed
     // If we get here, all models failed
     throw new Error(`The roasting AI is currently overwhelmed or having a breakdown. Please try again in a moment. (Debug: ${lastError?.message || 'Unknown error'})`);
+};
+
+export const getUserRoastHistory = async () => {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const user = await currentUser();
+    if (!user) return [];
+
+    const dbUser = await db.query.users.findFirst({
+        where: eq(users.clerkId, userId),
+    });
+
+    if (!dbUser) return [];
+
+    const history = await db.query.roasts.findMany({
+        where: eq(roasts.userId, dbUser.id),
+        orderBy: [desc(roasts.createdAt)],
+        limit: 20,
+    });
+
+    return history;
+};
+
+export const getHallOfShame = async () => {
+    const roastsData = await db.query.roasts.findMany({
+        orderBy: [desc(roasts.createdAt)],
+        limit: 50,
+    });
+
+    // Sort by score ascending (lowest first)
+    // Handle text score parsing
+    const sorted = roastsData.sort((a, b) => {
+        const scoreA = parseFloat(a.score);
+        const scoreB = parseFloat(b.score);
+        return scoreA - scoreB;
+    });
+
+    return sorted.slice(0, 10);
 };

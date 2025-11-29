@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { getUserCredits, generateRoast, type RoastData } from './actions';
 import { PricingModal } from '@/components/PricingModal';
+import { RoastHistoryModal } from '@/components/RoastHistoryModal';
+import { HallOfShame } from '@/components/HallOfShame';
 import { PaymentSuccessHandler } from '@/components/PaymentSuccessHandler';
 import { Suspense } from 'react';
 import { toast } from 'sonner';
@@ -24,6 +26,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [pricingReason, setPricingReason] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -113,6 +116,12 @@ const App: React.FC = () => {
             />
           </a>
           <SignedIn>
+            <button
+              onClick={() => setIsHistoryOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-medium text-neutral-400 hover:text-white transition hover:bg-white/5 rounded-full"
+            >
+              History
+            </button>
             <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 md:px-3 py-1.5 bg-neutral-900/80 backdrop-blur-sm rounded-full border border-neutral-800/80 shadow-lg shadow-black/20">
               <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 shrink-0" />
               <span className="text-xs sm:text-sm font-mono font-semibold text-white min-w-[20px] sm:min-w-[24px] text-center">{credits !== null ? credits : '...'}</span>
@@ -319,6 +328,8 @@ const App: React.FC = () => {
         </div>
       </section>
 
+      <HallOfShame />
+
       <footer className="w-full p-4 sm:p-5 md:p-6 text-center z-10 border-t border-white/5">
         <p className="text-neutral-600 text-[10px] sm:text-xs font-mono leading-relaxed">
           © {new Date().getFullYear()} ROAST MY UI LABS. DO NOT TAKE THIS PERSONALLY.
@@ -335,6 +346,15 @@ const App: React.FC = () => {
           refreshCredits(); // Refresh credits when modal closes
         }}
         reason={pricingReason}
+      />
+
+      <RoastHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelectRoast={(roast) => {
+          setRoastData(roast);
+          scrollToHero();
+        }}
       />
 
       <Suspense fallback={null}>

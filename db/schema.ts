@@ -25,3 +25,24 @@ export const transactions = pgTable("transactions", {
     orderId: text("order_id").notNull().unique(), // Unique identifier for the purchase
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const roasts = pgTable("roasts", {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+        .references(() => users.id)
+        .notNull(),
+    url: text("url").notNull(),
+    score: text("score").notNull(), // Storing as text to preserve formatting if needed, or use real/decimal
+    tagline: text("tagline").notNull(),
+    roast: text("roast").notNull(),
+    shareText: text("share_text"),
+    strengths: text("strengths").array(), // Using array for simplicity with Drizzle/PG
+    weaknesses: text("weaknesses").array(),
+    visualCrimes: text("visual_crimes").array(),
+    bestPart: text("best_part"),
+    worstPart: text("worst_part"),
+    screenshot: text("screenshot"), // Base64 string
+    modelUsed: text("model_used"),
+    analysisType: text("analysis_type").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
