@@ -9,7 +9,11 @@ const MESSAGES = [
     "Analyzing color hex codes...",
     "Laughing at your typography...",
     "Reading the CSS spaghetti...",
+    "Checking for accessibility issues...",
+    "Ensuring cross-browser compatibility...",
     "Generating savage insults...",
+    "Eliminating render-blocking resources...",
+    "Minifying JavaScript and CSS...",
 ];
 
 export const LoadingState: React.FC = () => {
@@ -43,7 +47,7 @@ export const LoadingState: React.FC = () => {
                     <div className="h-full bg-rose-500 animate-[loading_2s_ease-in-out_infinite]"></div>
                 </div>
                 <p className="text-neutral-600 text-xs font-mono pt-2">
-                    GEMINI VISION IS ACTIVE
+                    AI VISION IS ACTIVE
                 </p>
             </div>
 

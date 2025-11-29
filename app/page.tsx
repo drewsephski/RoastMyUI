@@ -9,13 +9,15 @@ import { LoadingState } from '@/components/LoadingState';
 import { ClientTweetCard as TweetCard } from '@/components/ui/tweet-card';
 import { Flame, Coins, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { getUserCredits, generateRoast, type RoastData } from './actions';
 import { PricingModal } from '@/components/PricingModal';
 import { PaymentSuccessHandler } from '@/components/PaymentSuccessHandler';
 import { Suspense } from 'react';
 
 const App: React.FC = () => {
+  const { isSignedIn, isLoaded } = useUser();
+  const clerk = useClerk();
   const [roastData, setRoastData] = useState<RoastData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +34,11 @@ const App: React.FC = () => {
   };
 
   const handleRoastRequest = async (url: string, analysisType: 'hero' | 'full-page') => {
+    if (isLoaded && !isSignedIn) {
+      clerk.openSignUp();
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setRoastData(null);
@@ -76,18 +83,18 @@ const App: React.FC = () => {
           <span className="font-bold text-sm sm:text-base md:text-lg tracking-tight uppercase">Roast My UI</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-          <a 
-            href="https://www.producthunt.com/products/roast-my-ui?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-roast&#0045;my&#0045;ui" 
-            target="_blank" 
+          <a
+            href="https://www.producthunt.com/products/roast-my-ui?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-roast&#0045;my&#0045;ui"
+            target="_blank"
             rel="noopener noreferrer"
             className="hidden sm:block"
           >
-            <img 
-              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1043582&theme=light&t=1764340623680" 
-              alt="Roast&#0032;My&#0032;UI - Paste&#0032;a&#0032;URL&#0032;→&#0032;instant&#0032;AI&#0032;roast&#0032;with&#0032;actionable&#0032;fixes | Product Hunt" 
-              style={{ width: '200px', height: '43px' }} 
-              width="200" 
-              height="43" 
+            <img
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1043582&theme=light&t=1764340623680"
+              alt="Roast&#0032;My&#0032;UI - Paste&#0032;a&#0032;URL&#0032;→&#0032;instant&#0032;AI&#0032;roast&#0032;with&#0032;actionable&#0032;fixes | Product Hunt"
+              style={{ width: '200px', height: '43px' }}
+              width="200"
+              height="43"
             />
           </a>
           <SignedIn>

@@ -33,7 +33,7 @@ export const RoastResult: React.FC<RoastResultProps> = ({ data, onReset }) => {
     };
 
     const handleShare = () => {
-        const text = encodeURIComponent(`Just got my UI roasted by AI. Score: ${data.score}/10.\n\n"${data.tagline}"\n\n#RoastMyUI #GeminiAPI`);
+        const text = encodeURIComponent(`Just got my UI roasted by AI. Score: ${data.score}/10.\n\n"${data.tagline}"\n\n#RoastMyUI`);
         window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
     };
 
