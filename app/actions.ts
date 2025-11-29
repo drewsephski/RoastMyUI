@@ -217,7 +217,7 @@ const captureScreenshot = async (url: string, fullPage: boolean = false): Promis
             new URL(normalizedUrl);
         } catch {
             console.error("Invalid URL format:", url);
-            return null;
+            throw new Error("The URL provided is invalid.");
         }
 
         // Use ScreenshotOne API in production, Puppeteer locally
@@ -260,7 +260,7 @@ const captureScreenshot = async (url: string, fullPage: boolean = false): Promis
 
             if (!response.ok) {
                 console.error("ScreenshotOne API error:", response.status, response.statusText);
-                return null;
+                throw new Error(`We couldn't take a screenshot of that site (Error: ${response.status}). It might be down, blocking bots, or just too powerful for us.`);
             }
 
             const arrayBuffer = await response.arrayBuffer();
@@ -297,7 +297,8 @@ const captureScreenshot = async (url: string, fullPage: boolean = false): Promis
         }
     } catch (error) {
         console.error("Screenshot capture failed:", error);
-        return null;
+        if (error instanceof Error) throw error;
+        throw new Error("Failed to capture screenshot due to an unknown error.");
     }
 };
 
@@ -396,10 +397,18 @@ export const generateRoast = async (url: string, analysisType: 'hero' | 'full-pa
         dangerouslyAllowBrowser: true
     });
 
-    const base64Image = await captureScreenshot(url, analysisType === 'full-page');
+    let base64Image: string | null = null;
+    try {
+        base64Image = await captureScreenshot(url, analysisType === 'full-page');
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error("Failed to capture screenshot. We can't roast what we can't see. Please check the URL and try again.");
+    }
 
     if (!base64Image) {
-        throw new Error("Failed to capture screenshot. Cannot roast without visual evidence.");
+        throw new Error("Failed to capture screenshot. We can't roast what we can't see. Please check the URL and try again.");
     }
 
     const systemInstruction = `
@@ -635,5 +644,6 @@ Now generate a JSON object with this exact structure:
     }
 
     // If we get here, all models failed
-    throw new Error(`All model attempts failed. Last error: ${lastError?.message || 'Unknown error'}`);
+    // If we get here, all models failed
+    throw new Error(`The roasting AI is currently overwhelmed or having a breakdown. Please try again in a moment. (Debug: ${lastError?.message || 'Unknown error'})`);
 };

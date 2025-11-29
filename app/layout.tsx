@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -62,6 +63,7 @@ export default function RootLayout({
         <body className="font-sans antialiased bg-background text-foreground">
           <div className="noise-bg" />
           {children}
+          <Toaster position="top-center" theme="dark" richColors />
         </body>
       </html>
     </ClerkProvider>

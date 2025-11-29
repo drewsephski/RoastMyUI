@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import { X, Check, Zap, Crown } from 'lucide-react';
 import { createCheckout } from '@/app/actions';
+import { toast } from 'sonner';
 
 interface PricingModalProps {
     isOpen: boolean;
     onClose: () => void;
+    reason?: string;
 }
 
-export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) => {
+export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose, reason }) => {
     const [loading, setLoading] = useState<'15_CREDITS' | '40_CREDITS' | null>(null);
 
     if (!isOpen) return null;
@@ -23,7 +25,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
             }
         } catch (error) {
             console.error("Checkout failed:", error);
-            alert("Failed to start checkout. Please try again.");
+            toast.error("Checkout Failed", {
+                description: "Failed to start checkout. Please try again.",
+            });
             setLoading(null);
         }
     };
@@ -48,10 +52,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1.5 sm:mb-2 pr-8" style={{
                         textShadow: '0 2px 10px rgba(255,255,255,0.2)'
                     }}>
-                        Refill Credits
+                        {reason ? "Out of Credits!" : "Refill Credits"}
                     </h2>
-                    <p className="text-xs sm:text-sm md:text-base text-neutral-400">
-                        Choose a package to continue roasting
+                    <p className={`text-xs sm:text-sm md:text-base ${reason ? "text-rose-400 font-semibold" : "text-neutral-400"}`}>
+                        {reason || "Choose a package to continue roasting"}
                     </p>
                 </div>
 

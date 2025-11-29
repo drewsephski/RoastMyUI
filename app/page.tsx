@@ -14,6 +14,7 @@ import { getUserCredits, generateRoast, type RoastData } from './actions';
 import { PricingModal } from '@/components/PricingModal';
 import { PaymentSuccessHandler } from '@/components/PaymentSuccessHandler';
 import { Suspense } from 'react';
+import { toast } from 'sonner';
 
 const App: React.FC = () => {
   const { isSignedIn, isLoaded } = useUser();
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [pricingReason, setPricingReason] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     getUserCredits().then(setCredits);
@@ -52,10 +54,23 @@ const App: React.FC = () => {
     } catch (err) {
       console.error(err);
       const errorMessage = err instanceof Error ? err.message : "Gemini refused to roast this (it was too powerful or the API broke). Try again.";
-      setError(errorMessage);
 
       if (errorMessage.includes("Insufficient credits")) {
+        setPricingReason("You need more credits to roast this site!");
         setIsPricingOpen(true);
+        toast.error("Out of Credits", {
+          description: "You need to top up your credits to continue roasting.",
+          action: {
+            label: "Buy Credits",
+            onClick: () => setIsPricingOpen(true),
+          },
+          duration: 5000,
+        });
+      } else {
+        setError(errorMessage);
+        toast.error("Roast Failed", {
+          description: errorMessage,
+        });
       }
     } finally {
       setIsLoading(false);
@@ -312,10 +327,15 @@ const App: React.FC = () => {
         </p>
       </footer>
 
-      <PricingModal isOpen={isPricingOpen} onClose={() => {
-        setIsPricingOpen(false);
-        refreshCredits(); // Refresh credits when modal closes
-      }} />
+      <PricingModal
+        isOpen={isPricingOpen}
+        onClose={() => {
+          setIsPricingOpen(false);
+          setPricingReason(undefined);
+          refreshCredits(); // Refresh credits when modal closes
+        }}
+        reason={pricingReason}
+      />
 
       <Suspense fallback={null}>
         <PaymentSuccessHandler onCreditsUpdated={(newCredits) => setCredits(newCredits)} />
